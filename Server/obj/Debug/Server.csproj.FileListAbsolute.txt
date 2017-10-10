@@ -5,3 +5,9 @@ D:\Programming\Projects\Server\Server\obj\Debug\Server.csprojResolveAssemblyRefe
 D:\Programming\Projects\Server\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
 D:\Programming\Projects\Server\Server\obj\Debug\Server.exe
 D:\Programming\Projects\Server\Server\obj\Debug\Server.pdb
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Server.exe.config
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Server.exe
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Server.pdb
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\obj\Debug\Server.exe
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\obj\Debug\Server.pdb

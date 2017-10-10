@@ -33,25 +33,19 @@ namespace Server
             while (connections < 10)
             {
                 Socket handler = socket.Accept();
+                byte[] buffer = new byte[] { 99 };
                 connections++;
                 Thread thread = new Thread(new ParameterizedThreadStart(AcceptConnection));
+                thread.Name = connections + "";
                 thread.Start(handler);
-                Thread.Sleep(500);
-                
+                Console.WriteLine("Accepted new Connection");
             }
             socket.Close();
         }
 
         void AcceptConnection(object h)
         {
-            Socket handler = (Socket)h;
-            Console.WriteLine("Connection accepted");
-            Thread.CurrentThread.Abort();
-            handler.Send(Encoding.UTF8.GetBytes("Connection accepted"));
-            Thread.Sleep(10000);
-            handler.Send(Encoding.UTF8.GetBytes("Connection closed"));
-            handler.Shutdown(SocketShutdown.Both);
-            handler.Close();
+            new NewClient(Thread.CurrentThread, (Socket)h);
         }
 
         Exception SendMessage(Socket handler,string text)
