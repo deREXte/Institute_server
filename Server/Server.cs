@@ -44,12 +44,31 @@ namespace Server
         {
             Socket handler = (Socket)h;
             Console.WriteLine("Connection accepted");
-           
+            Thread.CurrentThread.Abort();
             handler.Send(Encoding.UTF8.GetBytes("Connection accepted"));
             Thread.Sleep(10000);
             handler.Send(Encoding.UTF8.GetBytes("Connection closed"));
             handler.Shutdown(SocketShutdown.Both);
             handler.Close();
         }
+
+        Exception SendMessage(Socket handler,string text)
+        {
+            try
+            {
+                handler.Send(Encoding.UTF8.GetBytes(text));
+            }catch(Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        void ReportErrorMessage(Exception ex)
+        {
+            Console.Write(ex.Message);
+            Thread.CurrentThread.Abort();
+        }
+        
     }
 }
