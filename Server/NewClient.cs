@@ -64,7 +64,7 @@ namespace Server
         {
             return Thread.CurrentThread.IsAlive;
         }
-
+        
         void Ping(object obj)
         {
             if (handler == null)
@@ -75,12 +75,12 @@ namespace Server
             byte[] buffer = new byte[] { 99 };
             try
             {
-                handler.Send(buffer, buffer.Length, SocketFlags.None);
+                handler.Send(Encoding.UTF8.GetBytes("PING"), buffer.Length, SocketFlags.None);
                 handler.Receive(buffer, buffer.Length, SocketFlags.None);
-                Console.WriteLine("2");
             }
             catch(Exception)
             {
+                timer.Dispose();
                 return;
             }
             timer.Dispose();

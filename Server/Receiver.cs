@@ -10,33 +10,42 @@ namespace Server
 {
     class MTask
     {
-        public MTask(string command)
+        public MTask()
         {
-            this.command = command;
             value = new Queue<string>();
+            e = new EventResetMode();
+            handle = new EventWaitHandle(false, e);
         }
 
-        public string command;
         public Queue<string> value;
+        public EventResetMode e;
+        public EventWaitHandle handle;
     } 
 
     class Receiver
     {
-        List<MTask> tasks;
+        Dictionary<string,MTask> tasks;
         Socket handler;
         Thread thread;
 
         public Receiver(Socket handler)
         {
-            tasks = new List<MTask>();
+            tasks = new Dictionary<string,MTask>();
             this.handler = handler;
         }
 
-        public Receiver(Socket handler,string command)
+        public Receiver(Socket handler,string key,string command)
         {
-            tasks = new List<MTask>();
-            Add(command);
+            tasks = new Dictionary<string,MTask>();
+            Add(key, command);
             this.handler = handler;
+        }
+
+        public string GetValue(EventWaitHandle handle,string tkey)
+        {
+            handle.WaitOne();
+            handle.Reset();
+            return tasks[tkey].value.Dequeue();
         }
 
         public void Abort()
@@ -50,9 +59,9 @@ namespace Server
             thread.Start();
         }
 
-        public void Add(string command)
+        public void Add(string key,string command)
         {
-            tasks.Add(new MTask(command));
+            tasks.Add(key,new MTask());
         }
 
         void StartReceive()
@@ -62,12 +71,9 @@ namespace Server
                 byte[] buffer = new byte[1024];
                 handler.Receive(buffer, 1024, SocketFlags.None);
                 string line = Encoding.UTF8.GetString(buffer);
-                string command = line.Substring(0, line.IndexOf(' '));
-                for (int i = 0, length = tasks.Count; i < length; i++)
-                {
-                    if (tasks[i].command == command)
-                        tasks[i].value.Enqueue(command);
-                }
+                string[] command = line.Split('|'); 
+                tasks[command[0]].value.Enqueue(command[1]);
+                tasks[command[0]].handle.Set();
             }
         }
 
