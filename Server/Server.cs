@@ -36,6 +36,8 @@ namespace Server
                 connections++;
                 Thread thread = new Thread(new ParameterizedThreadStart(AcceptConnection));
                 thread.Start(handler);
+                Thread.Sleep(500);
+                
             }
             socket.Close();
         }
