@@ -13,6 +13,7 @@ namespace Server
     {
         Socket socket;
 
+        List<NewClient> clients;
 
         public Server(int port)
         {
@@ -22,6 +23,8 @@ namespace Server
 
             socket = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(ipEndPoint);
+
+            clients = new List<NewClient>();
         }
 
         public void StartServer()
@@ -33,7 +36,6 @@ namespace Server
             while (connections < 10)
             {
                 Socket handler = socket.Accept();
-                byte[] buffer = new byte[] { 99 };
                 connections++;
                 Thread thread = new Thread(new ParameterizedThreadStart(AcceptConnection));
                 thread.Name = connections + "";
@@ -45,7 +47,9 @@ namespace Server
 
         void AcceptConnection(object h)
         {
-            new NewClient(Thread.CurrentThread, (Socket)h);
+            NewClient newClient =  new NewClient(Thread.CurrentThread, (Socket)h);
+            clients.Add(newClient);
+            newClient.StartListen();
         }
 
         Exception SendMessage(Socket handler,string text)

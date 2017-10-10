@@ -41,12 +41,23 @@ namespace Server
         {
             this.thread = thread;
             this.handler = handler;
-            checkConnection = new Timer(new TimerCallback(Ping), new AutoResetEvent(false), 10000, 45000);
+            checkConnection = new Timer(new TimerCallback(Ping), new AutoResetEvent(false), 10000, 60000);
+            this.handler.SendTimeout = -1;
+            this.handler.ReceiveTimeout = -1;
         }
 
-        void StartListen()
+        public void StartListen()
         {
-            
+            while (true)
+            {
+                try
+                {
+                    byte[] buffer = new byte[1024];
+                    handler.Receive(buffer, buffer.Length, SocketFlags.None);
+                    Console.WriteLine("1");
+                }
+                catch (Exception) { }
+            }
         }
 
         public bool IsAlive()
@@ -58,6 +69,7 @@ namespace Server
         {
             if (handler == null)
                 AbortThread("Connection lost");
+            Console.WriteLine("Ping");
             var autoEvent = new AutoResetEvent(false);
             Timer timer = new Timer(new TimerCallback(AbortThread), autoEvent, 25000, 25000);
             byte[] buffer = new byte[] { 99 };
@@ -65,11 +77,10 @@ namespace Server
             {
                 handler.Send(buffer, buffer.Length, SocketFlags.None);
                 handler.Receive(buffer, buffer.Length, SocketFlags.None);
+                Console.WriteLine("2");
             }
-            catch(Exception ex)
+            catch(Exception)
             {
-                timer.Dispose();
-                AbortThread(ex);
                 return;
             }
             timer.Dispose();
@@ -101,6 +112,7 @@ namespace Server
 
         void exitThread(MThreadAbortedException ex)
         {
+            Console.WriteLine("Exit thread");
             checkConnection.Dispose();         
             handler.Shutdown(SocketShutdown.Both);
             handler.Close();
