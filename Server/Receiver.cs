@@ -32,19 +32,26 @@ namespace Server
         {
             tasks = new Dictionary<string,MTask>();
             this.handler = handler;
+            start();
         }
 
-        public Receiver(Socket handler,string key,string command)
+        public void Remove(string key)
+        {
+            tasks.Remove(key);
+        }
+
+        public Receiver(Socket handler,string key)
         {
             tasks = new Dictionary<string,MTask>();
-            Add(key, command);
+            Add(key);
             this.handler = handler;
+            start();
         }
 
-        public string GetValue(EventWaitHandle handle,string tkey)
+        public string GetValue(string tkey)
         {
-            handle.WaitOne();
-            handle.Reset();
+            tasks[tkey].handle.WaitOne();
+            tasks[tkey].handle.Reset();
             return tasks[tkey].value.Dequeue();
         }
 
@@ -59,9 +66,9 @@ namespace Server
             thread.Start();
         }
 
-        public void Add(string key,string command)
+        public void Add(string key)
         {
-            tasks.Add(key,new MTask());
+            tasks.Add(key, new MTask());
         }
 
         void StartReceive()

@@ -36,6 +36,7 @@ namespace Server
         MThreadAbortedException threadAbortException;
         Socket handler;
         Timer checkConnection;
+        Receiver rec;
 
         public NewClient(Thread thread,Socket handler)
         {
@@ -44,6 +45,7 @@ namespace Server
             checkConnection = new Timer(new TimerCallback(Ping), new AutoResetEvent(false), 10000, 60000);
             this.handler.SendTimeout = -1;
             this.handler.ReceiveTimeout = -1;
+            rec = new Receiver(handler, "MAIN");
         }
 
         public void StartListen()
@@ -52,9 +54,7 @@ namespace Server
             {
                 try
                 {
-                    byte[] buffer = new byte[1024];
-                    handler.Receive(buffer, buffer.Length, SocketFlags.None);
-                    Console.WriteLine("1");
+                    rec.GetValue("MAIN");
                 }
                 catch (Exception) { }
             }
@@ -75,15 +75,20 @@ namespace Server
             byte[] buffer = new byte[] { 99 };
             try
             {
+                rec.Add("PING");
                 handler.Send(Encoding.UTF8.GetBytes("PING"), buffer.Length, SocketFlags.None);
-                handler.Receive(buffer, buffer.Length, SocketFlags.None);
+                rec.GetValue("PING");
             }
             catch(Exception)
             {
-                timer.Dispose();
                 return;
             }
-            timer.Dispose();
+            finally
+            {
+                rec.Remove("PING");
+                timer.Dispose();
+            }
+            
         }
 
         void AbortThread(string text)
