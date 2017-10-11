@@ -48,6 +48,10 @@ namespace Server
             start();
         }
 
+        public void Clear(string tkey)
+        {
+            tasks[tkey].value.Clear();
+        }
         public string GetValue(string tkey)
         {
             tasks[tkey].handle.WaitOne();
@@ -76,11 +80,20 @@ namespace Server
             while (true)
             {
                 byte[] buffer = new byte[1024];
-                handler.Receive(buffer, 1024, SocketFlags.None);
+                try
+                {
+                    handler.Receive(buffer, 1024, SocketFlags.None);
+                }catch(Exception ex)
+                {
+                    return;
+                }
                 string line = Encoding.UTF8.GetString(buffer);
-                string[] command = line.Split('|'); 
-                tasks[command[0]].value.Enqueue(command[1]);
-                tasks[command[0]].handle.Set();
+                string[] command = line.Split('|');
+                if (tasks.ContainsKey(command[0]))
+                {
+                    tasks[command[0]].value.Enqueue(command[1]);
+                    tasks[command[0]].handle.Set();
+                }
             }
         }
 

@@ -59,6 +59,7 @@ namespace Server
                 handler.Send(Encoding.UTF8.GetBytes(text));
             }catch(Exception ex)
             {
+                Console.WriteLine("62");
                 return ex;
             }
             return null;

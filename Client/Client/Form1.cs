@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Sockets;
 using System.Net;
+using System.Threading;
 
 namespace Client
 {
     public partial class Form1 : Form
     {
         Socket sender;
+        Thread t;
         public Form1()
         {
             InitializeComponent();
@@ -29,24 +31,12 @@ namespace Client
             try
             {
                 sender.Connect(remoteEP);
-
+                sender.ReceiveTimeout = -1;
+                sender.SendTimeout = -1;
                 Console.WriteLine("Socket connected to {0}",
                     sender.RemoteEndPoint.ToString());
-
-                //// Encode the data string into a byte array.
-                //byte[] msg = Encoding.ASCII.GetBytes("This is a test<EOF>");
-
-                //// Send the data through the socket.
-                //int bytesSent = sender.Send(msg);
-
-                //// Receive the response from the remote device.
-                //int bytesRec = sender.Receive(bytes);
-                //Console.WriteLine("Echoed test = {0}",
-                //    Encoding.ASCII.GetString(bytes, 0, bytesRec));
-
-                // Release the socket.
-                /*sender.Shutdown(SocketShutdown.Both);
-                sender.Close();*/
+                t = new Thread(new ThreadStart(check));
+                t.Start();
 
             }
             catch (ArgumentNullException ane)
@@ -61,6 +51,25 @@ namespace Client
             {
                 Console.WriteLine("Unexpected exception : {0}", e.ToString());
             }
+        }
+
+        void check()
+        {
+            while (true)
+            {
+                byte[] buffer = new byte[1024];
+                sender.Receive(buffer);
+                string str = Encoding.UTF8.GetString(buffer);
+                if (str.Substring(0, 4) == "PING")
+                {
+                    sender.Send(Encoding.UTF8.GetBytes("PING|NULL"));
+                }
+            }
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            t.Abort();
         }
     }
 }
