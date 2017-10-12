@@ -47,7 +47,7 @@ namespace Server
 
         void AcceptConnection(object h)
         {
-            NewClient newClient =  new NewClient(Thread.CurrentThread, (Socket)h);
+            NewClient newClient =  new NewClient((Socket)h);
             clients.Add(newClient);
             newClient.StartListen();
         }

@@ -16,7 +16,7 @@ namespace Client
     public partial class Form1 : Form
     {
         Socket sender;
-        Thread t;
+
         public Form1()
         {
             InitializeComponent();
@@ -35,8 +35,8 @@ namespace Client
                 sender.SendTimeout = -1;
                 Console.WriteLine("Socket connected to {0}",
                     sender.RemoteEndPoint.ToString());
-                t = new Thread(new ThreadStart(check));
-                t.Start();
+                if (function())
+                    Console.WriteLine("OK");
 
             }
             catch (ArgumentNullException ane)
@@ -53,23 +53,52 @@ namespace Client
             }
         }
 
-        void check()
+        bool function()
         {
-            while (true)
+            int ins = DateTime.Today.Minute;
+            int orse = DateTime.Today.Hour;
+            int ppp = DateTime.Today.Day * DateTime.Today.Month * DateTime.Today.Year;
+            //int ppp = 31 * 12 * 2100;
+            //int ppp = 1 * 1 * 2017;
+            ppp += ((ppp & 1) == 1) ? 1 : 0;
+            long n1, n2;
+            n1 = n2 = ppp / 2;
+            Random r = new Random(ppp);
+            int ran = r.Next(ppp / 2 / 2 - 1);
+            if (((ran & 1) == 1))
             {
-                byte[] buffer = new byte[1024];
-                sender.Receive(buffer);
-                string str = Encoding.UTF8.GetString(buffer);
-                if (str.Substring(0, 4) == "PING")
-                {
-                    sender.Send(Encoding.UTF8.GetBytes("PING|NULL"));
-                }
+                n1 -= ran;
+                n2 += ran;
             }
-        }
-
-        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            t.Abort();
+            else
+            {
+                n2 -= ran;
+                n1 += ran;
+            }
+            n1 = ((((n1 * ppp) - 10) * 2) + 4);
+            n2 = ((((n2 * ppp) - 10) * 2) + 4);
+            string bn1 = n1.ToString(),bn2 = n2.ToString();
+            string resbn1 = "", resbn2 = "";
+            for(int i = 0, length = bn1.Length; i < length; i++)
+            {
+                resbn1 += (char)(bn1[i] + ins - orse);
+            }
+            for (int i = 0, length = bn2.Length; i < length; i++)
+            {
+                resbn2 += (char)(bn2[i] + ins - orse);
+            }
+            Console.WriteLine(resbn1.Length);
+            Console.WriteLine(resbn2.Length);
+            sender.Send(Encoding.UTF8.GetBytes((resbn1.Length - 7).ToString()), 1, SocketFlags.None);
+            sender.Send(Encoding.UTF8.GetBytes(resbn1), resbn1.Length, SocketFlags.None);
+            sender.Send(Encoding.UTF8.GetBytes((resbn2.Length - 7).ToString()), 1, SocketFlags.None);
+            sender.Send(Encoding.UTF8.GetBytes(resbn2), resbn2.Length, SocketFlags.None);
+            byte[] answer = new byte[2];         
+            sender.Receive(answer, 2, SocketFlags.None);
+            if (Encoding.UTF8.GetString(answer) == "OK")
+                return true; 
+            else
+                return false;
         }
     }
 }
