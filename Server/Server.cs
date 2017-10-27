@@ -31,18 +31,14 @@ namespace Server
         {
             if (socket == null)
                 throw new NullReferenceException();
-            socket.Listen(10);
-            int connections = 0;
-            while (connections < 10)
+            socket.Listen(20);
+            while (true)
             {
                 Socket handler = socket.Accept();
-                connections++;
                 Thread thread = new Thread(new ParameterizedThreadStart(AcceptConnection));
-                thread.Name = connections + "";
                 thread.Start(handler);
                 Console.WriteLine("Accepted new Connection");
             }
-            socket.Close();
         }
 
         void AcceptConnection(object h)
@@ -51,25 +47,5 @@ namespace Server
             clients.Add(newClient);
             newClient.StartListen();
         }
-
-        Exception SendMessage(Socket handler,string text)
-        {
-            try
-            {
-                handler.Send(Encoding.UTF8.GetBytes(text));
-            }catch(Exception ex)
-            {
-                Console.WriteLine("62");
-                return ex;
-            }
-            return null;
-        }
-
-        void ReportErrorMessage(Exception ex)
-        {
-            Console.Write(ex.Message);
-            Thread.CurrentThread.Abort();
-        }
-        
     }
 }

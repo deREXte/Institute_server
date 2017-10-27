@@ -13,11 +13,11 @@ using System.Threading;
 
 namespace Client
 {
-    public partial class Form1 : Form
+    public partial class AuthorizationForm : Form
     {
         Socket sender;
 
-        public Form1()
+        public AuthorizationForm()
         {
             InitializeComponent();
             byte[] bytes = new byte[1024];
@@ -33,23 +33,23 @@ namespace Client
                 sender.Connect(remoteEP);
                 sender.ReceiveTimeout = -1;
                 sender.SendTimeout = -1;
-                Console.WriteLine("Socket connected to {0}",
-                    sender.RemoteEndPoint.ToString());
+                /*MessageBox.Show("Socket connected to {0}",
+                    sender.RemoteEndPoint.ToString());*/
                 if (function())
                     Console.WriteLine("OK");
 
             }
             catch (ArgumentNullException ane)
             {
-                Console.WriteLine("ArgumentNullException : {0}", ane.ToString());
+                MessageBox.Show("ArgumentNullException : {0}", ane.ToString());
             }
             catch (SocketException se)
             {
-                Console.WriteLine("SocketException : {0}", se.ToString());
+                MessageBox.Show("SocketException : {0}", se.ToString());
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unexpected exception : {0}", e.ToString());
+                MessageBox.Show("Unexpected exception : {0}", e.ToString());
             }
         }
 
@@ -99,6 +99,34 @@ namespace Client
                 return true; 
             else
                 return false;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string login = textBox1.Text;
+            string Password = textBox2.Text;
+            byte[] buffer = new byte[1024];
+            buffer[0] = (byte)login.Length;
+            buffer[1] = (byte)Password.Length;
+            Concat(2, buffer, Encoding.UTF8.GetBytes(login));
+            Concat(buffer[0] + 2, buffer, Encoding.UTF8.GetBytes(Password));
+            this.sender.Send(buffer, 1024, SocketFlags.None);
+            this.sender.Receive(buffer, 1, SocketFlags.None);
+            if(buffer[0] == 101)
+            {
+                Data.Authorized = true;
+                Close();
+            }
+        }
+
+        private void Concat(int n,byte[] to,byte[] from)
+        {
+            int tolength = to.Length;
+            int fromlength = from.Length;
+            for(int i = 0; n < tolength && i < fromlength; i++,n++)
+            {
+                to[n] = from[i];
+            }
         }
     }
 }

@@ -7,29 +7,9 @@ using System.Threading;
 using System.Net.Sockets;
 using System.Net;
 
+
 namespace Server
 {
-
-
-    class MThreadAbortedException : Exception
-    {
-        public new string Message
-        {
-            get;
-            private set;
-        }
-
-        public MThreadAbortedException(string text)
-        {
-            Message = text;
-        }
-
-        public MThreadAbortedException()
-        {
-            Message = "Unknown error!";
-        }
-    }
-
     class NewClient
     {
         Socket handler;
@@ -52,8 +32,48 @@ namespace Server
             handler.ReceiveTimeout = 1000;
             if (!CheckClient())
                 return;
+
+            handler.ReceiveTimeout = 150000;
+            if (!Authorization())
+                return;
+            
             handler.ReceiveTimeout = 1500000;
+
         }
+
+        private bool Authorization()
+        {
+            string login = "", password = "";
+            byte[] buffer = new byte[1024];
+            while (true)
+            {
+                try
+                {
+                    handler.Receive(buffer, 1024, SocketFlags.None);
+                }catch(Exception e)
+                {
+                    Console.WriteLine(Thread.CurrentThread.Name + " " + e.Message);
+                    return false;
+                }
+                string bufpass;
+                int logLength = buffer[0], passlength = buffer[1];
+                string buf = Encoding.UTF8.GetString(buffer);
+                string bufferlog = buf.Substring(2, logLength);
+                if(bufferlog != login)
+                {
+                    password = DataBaseOperations.GetUserPassword(bufferlog);
+                    login = bufferlog;
+                }
+                bufpass = buf.Substring(logLength + 2, passlength);
+                if(bufpass == password)
+                {
+                    handler.Send(new byte[1] { 101 }, 1, SocketFlags.None);
+                    return true;
+                }
+            }
+        }
+
+
 
         private bool CheckClient()
         {
@@ -108,10 +128,6 @@ namespace Server
             }
         }
 
-        private void Authorization()
-        {
-
-        }
 
     }
 }

@@ -16,7 +16,18 @@ namespace Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            RunApp();
         }
+
+        static void RunApp()
+        {
+            Application.Run(new AuthorizationForm());
+            if (Data.Authorized)
+            {
+                Application.Run(new Client());
+            }
+        }
+
+
     }
 }
