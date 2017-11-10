@@ -49,5 +49,14 @@ namespace Server {
                 return ((string)(this["DataBase"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:/")]
+        public string LogFilePath {
+            get {
+                return ((string)(this["LogFilePath"]));
+            }
+        }
     }
 }

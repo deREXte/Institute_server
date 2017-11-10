@@ -17,7 +17,7 @@ namespace Server
 
         public Server(int port)
         {
-            IPHostEntry iphost = Dns.GetHostEntry("localhost");
+            IPHostEntry iphost = Dns.GetHostEntry("192.168.1.33");
             IPAddress ipAddr = iphost.AddressList[0];
             IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 55000);
 

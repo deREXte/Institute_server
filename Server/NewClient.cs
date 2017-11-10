@@ -12,6 +12,10 @@ namespace Server
 {
     class NewClient
     {
+
+        string _login_name;
+
+        Log log;
         Socket handler;
         Thread thread;
 
@@ -36,9 +40,36 @@ namespace Server
             handler.ReceiveTimeout = 150000;
             if (!Authorization())
                 return;
-            
+
+            log = new Log(_login_name);
             handler.ReceiveTimeout = 1500000;
 
+        }
+
+        private void receiveCommands()
+        {
+            byte[] buffer = new byte[1024];
+            string cmd;
+            int received_msgs = 0;
+            while (true)
+            {
+                cmd = "";
+                while (received_msgs < 25) {
+                    handler.Receive(buffer, 1024, SocketFlags.None);
+                    received_msgs++;
+                    cmd += Encoding.UTF8.GetString(buffer);
+                    if (cmd.IndexOf('\0') != -1) break;
+                }
+                try
+                {
+                    log.Write(cmd);
+                }
+                catch (Exception)
+                {
+                    log = new Log(_login_name);
+                }
+
+            }
         }
 
         private bool Authorization()
@@ -68,6 +99,7 @@ namespace Server
                 if(bufpass == password)
                 {
                     handler.Send(new byte[1] { 101 }, 1, SocketFlags.None);
+                    _login_name = login;
                     return true;
                 }
             }
