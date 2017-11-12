@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
-using System.Data;
-using Server.BDDataSetTableAdapters;
+using System.Data.Sql;
 using System.Threading;
+using System.Collections;
 
 namespace Server
 {
@@ -35,7 +35,7 @@ namespace Server
             SqlDataReader sqlReader = null;
             try
             {
-                Execute(ref sqlReader, command);
+                execute(ref sqlReader, command);
                 if (!sqlReader.HasRows)
                     return null;
             }
@@ -47,7 +47,23 @@ namespace Server
             return Convert.ToString(sqlReader["Password"]);
         }
 
-        private static void Execute(ref SqlDataReader sqlReader,SqlCommand command)
+        public static IEnumerator Execute(string command)
+        {
+            SqlCommand cmd = new SqlCommand("SELECT * FROM [Users]", Connection);
+            SqlDataReader sqlReader = null;
+            try
+            {
+                execute(ref sqlReader, cmd);
+                if (!sqlReader.HasRows)
+                    return null;
+            }catch(Exception)
+            {
+                return null;
+            }
+            return sqlReader.GetEnumerator();
+        }
+
+        private static void execute(ref SqlDataReader sqlReader,SqlCommand command)
         {
             mut.WaitOne();
             sqlReader = command.ExecuteReader();

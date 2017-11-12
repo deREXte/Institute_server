@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Authorization.cs" />
     <Compile Include="DataBaseOperations.cs" />
+    <Compile Include="DBExecuter.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="NewClient.cs" />
     <Compile Include="Program.cs" />

@@ -12,7 +12,7 @@
       <Value Profile="(Default)">BD</Value>
     </Setting>
     <Setting Name="LogFilePath" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">C:/</Value>
+      <Value Profile="(Default)">C:\Files\</Value>
     </Setting>
   </Settings>
 </SettingsFile>

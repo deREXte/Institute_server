@@ -10,11 +10,45 @@ using System.Net;
 
 namespace Server
 {
+
+    class ClientException : Exception
+    {
+
+        bool _is_null;
+        public bool IsNull
+        {
+            get { return _is_null; }
+        }
+
+        string _additional_information;
+        public string AdditionalInformation
+        {
+            get { return _additional_information; }
+            set {
+                _is_null = false;
+                _additional_information = value;
+            }
+        }
+
+        public ClientException()
+        {
+            _additional_information = "";
+        }
+        
+        public void Clear()
+        {
+            _additional_information = "";
+            _is_null = true;
+        }
+
+    }
+
     class NewClient
     {
 
         string _login_name;
 
+        ClientException error;
         Log log;
         Socket handler;
         Thread thread;
@@ -22,14 +56,27 @@ namespace Server
         public NewClient()
         {
             thread = Thread.CurrentThread;
+            error = new ClientException();
         }
 
         public NewClient(Socket handle)
         {
             handler = handle;
             thread = Thread.CurrentThread;
+            error = new ClientException();
         }
 
+        ~NewClient()
+        {
+            if (log != null)
+            {
+                if (!error.IsNull)
+                    log.Write(error.Message + ":" + error.AdditionalInformation);
+                log.Flush();
+            }
+            if(handler.Connected)
+                handler.Close();
+        }
 
         public void StartListen()
         {
@@ -42,23 +89,44 @@ namespace Server
                 return;
 
             log = new Log(_login_name);
+            log.Write("User " + _login_name + " was joined.");
             handler.ReceiveTimeout = 1500000;
-
+            receiveCommands();
         }
 
         private void receiveCommands()
         {
             byte[] buffer = new byte[1024];
             string cmd;
-            int received_msgs = 0;
+            int received_msgs;
             while (true)
             {
                 cmd = "";
+                received_msgs = 0;
                 while (received_msgs < 25) {
-                    handler.Receive(buffer, 1024, SocketFlags.None);
+                    try
+                    {
+                        handler.Receive(buffer, 1024, SocketFlags.None);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(Thread.CurrentThread + ":" + ex.Message);
+                        return;
+                    }
                     received_msgs++;
                     cmd += Encoding.UTF8.GetString(buffer);
-                    if (cmd.IndexOf('\0') != -1) break;
+                    int index = cmd.IndexOf('\0');
+                    if(index != -1)
+                    {
+                        cmd = cmd.Substring(0, index);
+                        break;
+                    }
+                }
+                var ien = DataBaseOperations.Execute(cmd);
+                while (ien.MoveNext())
+                {
+                    object obj = ien.Current;
+                    Console.WriteLine(obj.ToString());
                 }
                 try
                 {
@@ -67,6 +135,7 @@ namespace Server
                 catch (Exception)
                 {
                     log = new Log(_login_name);
+                    log.Write(cmd);
                 }
 
             }
@@ -83,7 +152,8 @@ namespace Server
                     handler.Receive(buffer, 1024, SocketFlags.None);
                 }catch(Exception e)
                 {
-                    Console.WriteLine(Thread.CurrentThread.Name + " " + e.Message);
+                    error = (ClientException)e;
+                    error.AdditionalInformation = "While authorization";
                     return false;
                 }
                 string bufpass;

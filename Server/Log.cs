@@ -21,7 +21,7 @@ namespace Server
 
         public Log(string Name)
         {
-            if(createFile(StartApp.Default.LogFilePath + "/" + Name))
+            if(createFile(StartApp.Default.LogFilePath + Name))
             {
                 _file_is_opened = false;
             }
@@ -31,11 +31,17 @@ namespace Server
         {
             string date = "[" + DateTime.Today.Year + ":" +
                 DateTime.Today.Month + ":" +
-                DateTime.Today.Day + "|" +
+                DateTime.Today.Day + ":" +
                 DateTime.Today.Hour + ":" +
                 DateTime.Today.Minute + ":" +
                 DateTime.Today.Second + "] ";
             _file.WriteLine(date + text);
+            _file.Flush();
+        }
+
+        public void Flush()
+        {
+            _file.Flush();
         }
 
         public bool OpenLogFile(string pathAndName)
@@ -79,7 +85,7 @@ namespace Server
         {
             try
             {
-                _file = new StreamWriter(pathAndName + "log.txt");
+                _file = new StreamWriter(pathAndName + "log.txt", true);
             }
             catch (Exception)
             {

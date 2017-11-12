@@ -52,7 +52,7 @@ namespace Server {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Files\\")]
         public string LogFilePath {
             get {
                 return ((string)(this["LogFilePath"]));

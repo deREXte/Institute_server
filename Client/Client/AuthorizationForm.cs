@@ -21,18 +21,18 @@ namespace Client
         {
             InitializeComponent();
             byte[] bytes = new byte[1024];
-            IPHostEntry ipHostInfo = Dns.GetHostEntry("localhost");
+            IPHostEntry ipHostInfo = Dns.GetHostEntry("192.168.1.33");
             IPAddress ipAddress = ipHostInfo.AddressList[0];
             IPEndPoint remoteEP = new IPEndPoint(ipAddress, 55000);
 
             // Create a TCP/IP  socket.
-            sender = new Socket(AddressFamily.InterNetwork,
+            Data.connection = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
             try
             {
-                sender.Connect(remoteEP);
-                sender.ReceiveTimeout = -1;
-                sender.SendTimeout = -1;
+                Data.connection.Connect(remoteEP);
+                Data.connection.ReceiveTimeout = -1;
+                Data.connection.SendTimeout = -1;
                 /*MessageBox.Show("Socket connected to {0}",
                     sender.RemoteEndPoint.ToString());*/
                 if (function())
@@ -87,14 +87,12 @@ namespace Client
             {
                 resbn2 += (char)(bn2[i] + ins - orse);
             }
-            Console.WriteLine(resbn1.Length);
-            Console.WriteLine(resbn2.Length);
-            sender.Send(Encoding.UTF8.GetBytes((resbn1.Length - 7).ToString()), 1, SocketFlags.None);
-            sender.Send(Encoding.UTF8.GetBytes(resbn1), resbn1.Length, SocketFlags.None);
-            sender.Send(Encoding.UTF8.GetBytes((resbn2.Length - 7).ToString()), 1, SocketFlags.None);
-            sender.Send(Encoding.UTF8.GetBytes(resbn2), resbn2.Length, SocketFlags.None);
-            byte[] answer = new byte[2];         
-            sender.Receive(answer, 2, SocketFlags.None);
+            Data.connection.Send(Encoding.UTF8.GetBytes((resbn1.Length - 7).ToString()), 1, SocketFlags.None);
+            Data.connection.Send(Encoding.UTF8.GetBytes(resbn1), resbn1.Length, SocketFlags.None);
+            Data.connection.Send(Encoding.UTF8.GetBytes((resbn2.Length - 7).ToString()), 1, SocketFlags.None);
+            Data.connection.Send(Encoding.UTF8.GetBytes(resbn2), resbn2.Length, SocketFlags.None);
+            byte[] answer = new byte[2];
+            Data.connection.Receive(answer, 2, SocketFlags.None);
             if (Encoding.UTF8.GetString(answer) == "OK")
                 return true; 
             else
@@ -110,8 +108,8 @@ namespace Client
             buffer[1] = (byte)Password.Length;
             Concat(2, buffer, Encoding.UTF8.GetBytes(login));
             Concat(buffer[0] + 2, buffer, Encoding.UTF8.GetBytes(Password));
-            this.sender.Send(buffer, 1024, SocketFlags.None);
-            this.sender.Receive(buffer, 1, SocketFlags.None);
+            Data.connection.Send(buffer, 1024, SocketFlags.None);
+            Data.connection.Receive(buffer, 1, SocketFlags.None);
             if(buffer[0] == 101)
             {
                 Data.Authorized = true;
