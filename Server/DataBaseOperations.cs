@@ -29,7 +29,7 @@ namespace Server
         }
 
         public static string GetUserPassword(string userName)
-        {          
+        {
             SqlCommand command = new SqlCommand("SELECT * FROM [Users] WHERE UserName = @UserName", Connection);
             command.Parameters.AddWithValue("@UserName", userName);
             SqlDataReader sqlReader = null;
@@ -44,12 +44,15 @@ namespace Server
                 return null;
             }
             sqlReader.Read();
-            return Convert.ToString(sqlReader["Password"]);
+            string result = Convert.ToString(sqlReader["Password"]);
+            if(!sqlReader.IsClosed)
+                sqlReader.Close();
+            return result;
         }
 
         public static IEnumerator Execute(string command)
         {
-            SqlCommand cmd = new SqlCommand("SELECT * FROM [Users]", Connection);
+            SqlCommand cmd = new SqlCommand(command, Connection);
             SqlDataReader sqlReader = null;
             try
             {
@@ -60,7 +63,12 @@ namespace Server
             {
                 return null;
             }
-            return sqlReader.GetEnumerator();
+            string[] result;
+            while (sqlReader.Read())
+            {
+
+            }
+            return sqlReader.GetValues;
         }
 
         private static void execute(ref SqlDataReader sqlReader,SqlCommand command)
