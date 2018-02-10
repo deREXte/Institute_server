@@ -32,12 +32,8 @@ namespace Server
             connect.DataSource = @"(local)\SQLEXPRESS";
             connect.ConnectTimeout = 30;
             connect.IntegratedSecurity = true;
-            connect.UserID = "abcd";
-            //connect.Password = "1";
             Connection.ConnectionString = connect.ConnectionString;
             Connection.Open();
-            SqlCommand sql = new SqlCommand("INSERT INTO [Users] (UserName, Privilege, Password) VALUES ('user','User','1')", Connection);
-            sql.ExecuteNonQuery();
             _connected = true;
         }
 
