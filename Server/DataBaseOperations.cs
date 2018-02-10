@@ -16,7 +16,15 @@ namespace Server
         private static Mutex mut = new Mutex();
         private static SqlConnection Connection = new SqlConnection();
 
-        public static void INIT()
+        private static bool _connected;
+
+        public static bool Connected
+        {
+            get { return _connected; }
+        }
+        
+
+        public static void InitConnectionToDB()
         {
             SqlConnectionStringBuilder connect =
                new SqlConnectionStringBuilder();
@@ -24,54 +32,27 @@ namespace Server
             connect.DataSource = @"(local)\SQLEXPRESS";
             connect.ConnectTimeout = 30;
             connect.IntegratedSecurity = true;
+            connect.UserID = "abcd";
+            //connect.Password = "1";
             Connection.ConnectionString = connect.ConnectionString;
             Connection.Open();
+            SqlCommand sql = new SqlCommand("INSERT INTO [Users] (UserName, Privilege, Password) VALUES ('user','User','1')", Connection);
+            sql.ExecuteNonQuery();
+            _connected = true;
         }
 
-        public static string GetUserPassword(string userName)
+        //изменить
+        public static bool CheckUserLoginData(string userName, string password)
         {
-            SqlCommand command = new SqlCommand("SELECT * FROM [Users] WHERE UserName = @UserName", Connection);
+            SqlCommand command = new SqlCommand("SELECT * FROM [Users] WHERE UserName = @UserName AND Password = @Password", Connection);
             command.Parameters.AddWithValue("@UserName", userName);
+            command.Parameters.AddWithValue("@Password", password);
             SqlDataReader sqlReader = null;
-            try
-            {
-                execute(ref sqlReader, command);
-                if (!sqlReader.HasRows)
-                    return null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-            sqlReader.Read();
-            string result = Convert.ToString(sqlReader["Password"]);
-            if(!sqlReader.IsClosed)
-                sqlReader.Close();
-            return result;
+            executeReader(ref sqlReader, command);
+            return sqlReader.HasRows;
         }
 
-        public static IEnumerator Execute(string command)
-        {
-            SqlCommand cmd = new SqlCommand(command, Connection);
-            SqlDataReader sqlReader = null;
-            try
-            {
-                execute(ref sqlReader, cmd);
-                if (!sqlReader.HasRows)
-                    return null;
-            }catch(Exception)
-            {
-                return null;
-            }
-            string[] result;
-            while (sqlReader.Read())
-            {
-
-            }
-            return sqlReader.GetValues;
-        }
-
-        private static void execute(ref SqlDataReader sqlReader,SqlCommand command)
+        private static void executeReader(ref SqlDataReader sqlReader,SqlCommand command)
         {
             mut.WaitOne();
             sqlReader = command.ExecuteReader();

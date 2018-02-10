@@ -13,18 +13,9 @@ namespace Server
     {
         static void Main(string[] args)
         {
-            try
-            {
-                DataBaseOperations.INIT();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return;
-            }
-           // DataRow dr = DataBaseOperations.GetUserPassword("deREXte");
-            Server server = new Server(55000);
-            server.StartServer();
+            Server s = new Server();
+            s.StartServer();
+         
         }
     }
 }
