@@ -21,13 +21,20 @@ namespace ServerClientClassLibrary
          */
     public class Code
     {
-        public enum OperationPurpose 
+        public enum OperationPurpose_1
         {
             DataBase = 0,
             Server = 1,
+            Answer = 2,
         }
 
-        public enum DBOperation 
+        public enum Answer_10
+        {
+            Error = 0,
+            Success = 1,
+        }
+
+        public enum DBOperation_10
         {
             Select = 0,
             Update = 1,
@@ -36,14 +43,16 @@ namespace ServerClientClassLibrary
             UserData = 4,
         }
 
-        public enum UserDataOperation 
+        public enum UserDataOperation_100
         {
             ChangeLogin = 0,
             ChangePassword = 1,
             DeleteProfile = 2,
+            Auto = 3,
+            Registration = 4,
         }
 
-        public enum ServerOperation 
+        public enum ServerOperation_10
         {
             ConnectionRefused = 0,
         }

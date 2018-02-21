@@ -30,7 +30,7 @@ namespace Server
             {
                 listener.Bind(localEndPoint);
                 listener.Listen(100);
-
+                listener.ReceiveTimeout = -1;
                 while (true)
                 {
                     Socket sock = listener.Accept();

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Net.Sockets;
 using ServerClientClassLibrary;
 
@@ -10,21 +10,20 @@ namespace Server
 {
     class Session
     {
-        Socket Handler;
+        Log ServerLog;
         IODialog IODialogWithClient;
-        
-        Log ServerLog, UserLog;
+        Operations Operations;
 
         public Session(Socket handler, Log serverLog)
         {
-            Handler = handler;
-            IODialogWithClient = new IODialog(Handler);
             ServerLog = serverLog;
+            IODialogWithClient = new IODialog(handler);
+            Operations = new Operations(ServerLog, IODialogWithClient);
         }
 
         public void CreateSession()
         {
-            if (!AcceptNewClient())
+            if (!Operations.CheckConnection())
                 return;
             StartDialog();
         }
@@ -34,31 +33,19 @@ namespace Server
             string msg;
             while (true)
             {  //
-                msg = IODialogWithClient.ReceiveMessage(out byte code);
-                if (code == 99)
+                try
+                {
+                    msg = IODialogWithClient.ReceiveMessage(out byte code);
+                    Operations.ExecuteCommand(msg, code);
+                }
+                catch (SocketException e)
+                {
+                    ServerLog.Write(Operations.UserName + " disconnected with error!");
                     return;
-               // DBOperations.ExecuteCommand(msg, code);
-                IODialogWithClient.SendMessage(msg, 51);
+                }
             }
         }
 
-        private bool AcceptNewClient()
-        {
-            AcceptNewConnection anc = new AcceptNewConnection(IODialogWithClient);
-            try
-            {
-                Handler.ReceiveTimeout = 25000;
-                if (!anc.Accept())
-                    return false;
-            }catch(SocketException)
-            {
-                ServerLog.Write("Connection failed!");
-                return false;
-            }
-            string name = anc.UserName;
-            UserLog = new Log(name);
-            ServerLog.Write(name + " connected!");
-            return true;
-        }
     }
 }
+

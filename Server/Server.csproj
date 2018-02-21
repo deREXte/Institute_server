@@ -68,7 +68,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Session\AcceptNewConnection.cs" />
-    <Compile Include="Session\DBOperations.cs" />
+    <Compile Include="Session\Operations.cs" />
     <Compile Include="Session\Log.cs" />
     <Compile Include="Session\Session.cs" />
   </ItemGroup>

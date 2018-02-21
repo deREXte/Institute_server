@@ -14,15 +14,21 @@ namespace Server
         static string SavePath = ConfigurationManager.AppSettings.Get("SavePathLogFiles");
 
         StreamWriter LogFile;
-        string UserName;
         string FullSavePath;
         bool FileOpened;
         
+        public string UserName
+        {
+            get;
+            private set;
+        }
+
         public Log(string userName)
         {
             UserName = userName;
             FullSavePath = SavePath + UserName + ".txt";
             OpenLogFile();
+            LogFile.AutoFlush = true;
         }
 
         void OpenLogFile()
@@ -42,12 +48,8 @@ namespace Server
 
         public void Write(string text)
         {
-            LogFile.WriteLine(text);
-        }
-
-        public void Write(byte[] text)
-        {
-            LogFile.WriteLine(Encoding.UTF8.GetString(text));
+            DateTime dateTime = DateTime.Now;
+            LogFile.WriteLine("[" + dateTime.GetDateTimeFormats('g')[0] + "] " + text);
         }
 
         public void CloseLogFile()

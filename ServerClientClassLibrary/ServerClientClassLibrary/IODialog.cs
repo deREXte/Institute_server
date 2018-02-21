@@ -13,19 +13,20 @@ namespace ServerClientClassLibrary
 
     public class IODialog
     {
-        Socket Handler;
         const int PacketLength = 4096;
-        string _PassPhrase;
+
+        Socket Handler;
 
         public string PassPhrase
         {
-            get { return _PassPhrase; }
+            get;
+            private set;
         }
 
         public IODialog(Socket socket)
         {
             Handler = socket;
-            _PassPhrase = Crypt.GeneratePassPhrase();
+            PassPhrase = Crypt.GeneratePassPhrase();
         }
 
         public void SendMessage(byte code)
@@ -35,7 +36,7 @@ namespace ServerClientClassLibrary
 
         public void SendMessage(string text, byte code)
         {
-            text = Crypt.Encrypt(text, _PassPhrase);
+            text = Crypt.Encrypt(text, PassPhrase);
             SendMessage(Encoding.UTF8.GetBytes(text), code);
         }
 
@@ -51,10 +52,10 @@ namespace ServerClientClassLibrary
         {
             code = 0;
             StringBuilder result = new StringBuilder();
-            byte[] buffer = new byte[4096];
-            bool first_message = true;
+            var buffer = new byte[4096];
+            var first_message = true;
             var netstream = new NetworkStream(Handler, true);
-            int numberOfBytesRead = 0;
+            var numberOfBytesRead = 0;
             do
             {
                 numberOfBytesRead = netstream.Read(buffer, 0, buffer.Length);
@@ -66,16 +67,6 @@ namespace ServerClientClassLibrary
                 }
             } while (netstream.DataAvailable);
             return Crypt.Decrypt(result.ToString(), PassPhrase);
-        }
-
-        private byte[] Subarray(byte[] array, int from, int length)
-        {
-            byte[] buffer = new byte[length];
-            for (int i = 0; i < length && i + from < array.Length; i++)
-            {
-                buffer[i] = array[from + i];
-            }
-            return buffer;
         }
     }
 }
