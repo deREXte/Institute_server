@@ -13,6 +13,27 @@ namespace Server
         IODialog Handler;
         Log ServerLog, UserLog;
         IODialog IODialogWithClient;
+        delegate void Operation(Operations op, string command);
+        static Dictionary<Code.OperationCode, Operation> OperationFuncs = new Dictionary<Code.OperationCode, Operation>()
+        {
+            [Code.OperationCode.SELECT] = (op,command) => {
+                op.UserLog.Write("Select command: " + command);
+                var buffer = DataBaseOperations.ExecuteSqlReader(command);
+                op.Handler.SendMessage(buffer, (byte)Code.OperationCode.AnswerOK);
+            },
+            [Code.OperationCode.INSERT] = (op, command) => {
+                op.UserLog.Write("Insert command: " + command);
+                DataBaseOperations.ExecuteNonSqlReader(command);
+                op.Handler.SendMessage("", (byte)Code.OperationCode.AnswerOK);
+            },
+    };
+
+        static Operations()
+        {
+            
+        }
+       
+       
 
         public string UserName
         {
@@ -60,13 +81,10 @@ namespace Server
                     DataBaseOperations.ExecuteNonSqlReader(command);
                     break;
                 case Code.DBOperation_10.Select:
-                    UserLog.Write("Select command: " + command);
-                    var buffer = DataBaseOperations.ExecuteSqlReader(command);
-                    Handler.SendMessage(buffer, (byte)code);
+                    
                     break;
                 case Code.DBOperation_10.Insert:
-                    UserLog.Write("Insert command: " + command);
-                    DataBaseOperations.ExecuteNonSqlReader(command);
+                    
                     break;
                 case Code.DBOperation_10.Delete:
                     UserLog.Write("Delete command: " + command);
@@ -131,50 +149,6 @@ namespace Server
                             catch (Exception)
                             {
 
-                            }
-                        }
-                    }
-                    break;
-                case Code.UserDataOperation_100.DeleteProfile:
-                    {
-                        var userName = SupportClass.SubEnv(command, "UserName", ';');
-                        var password = SupportClass.SubEnv(command, "Password", ';');
-                        if (DataBaseOperations.CheckUserLoginData(userName, password))
-                        {
-                            try
-                            {
-                                if (DataBaseOperations.DeleteProfile(userName))
-                                {
-                                    Handler.SendMessage((byte)Code.OperationPurpose_1.Answer + ((int)Code.Answer_10.Success * 10));
-                                    UserLog.Write(UserLog.UserName + " deleted his profile!");
-                                }
-                            }
-                            catch (Exception)
-                            {
-
-                            }
-                        }
-                    }
-                    break;
-                case Code.UserDataOperation_100.Registration:
-                    {
-                        var userName = SupportClass.SubEnv(command, "UserName", ';');
-                        var password = SupportClass.SubEnv(command, "Password", ';');
-                        try
-                        {
-                            if (DataBaseOperations.CreateUserProfile(userName, password))
-                            {
-                                Handler.SendMessage((byte)Code.OperationPurpose_1.Answer + ((int)Code.Answer_10.Success * 10));
-                                ServerLog.Write(userName + " created profile!");
-                                UserLog = new Log(userName);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-
-                        }
-                    }
-                    break;
                 case Code.UserDataOperation_100.Auto:
                     {
                         string userName, password, buffer;

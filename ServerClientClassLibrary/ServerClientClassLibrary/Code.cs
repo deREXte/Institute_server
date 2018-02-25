@@ -21,40 +21,21 @@ namespace ServerClientClassLibrary
          */
     public class Code
     {
-        public enum OperationPurpose_1
+        public enum OperationCode : byte
         {
-            DataBase = 0,
-            Server = 1,
-            Answer = 2,
-        }
+            /*0 - 19: Answers*/
+            AnswerOK = 0,
+            AnswerError = 1,
 
-        public enum Answer_10
-        {
-            Error = 0,
-            Success = 1,
-        }
+            /*20 - 39: Requests*/
+            SELECT = 20,
+            INSERT = 21,
+            UPDATE = 22,
+            DELETE = 23,
 
-        public enum DBOperation_10
-        {
-            Select = 0,
-            Update = 1,
-            Insert = 2,
-            Delete = 3,
-            UserData = 4,
-        }
-
-        public enum UserDataOperation_100
-        {
-            ChangeLogin = 0,
-            ChangePassword = 1,
-            DeleteProfile = 2,
-            Auto = 3,
-            Registration = 4,
-        }
-
-        public enum ServerOperation_10
-        {
-            ConnectionRefused = 0,
+            /*40 - 59: UserData*/
+            Login = 40,
+            GenerateUserData = 41,
         }
     }
 }
