@@ -13,3 +13,5 @@ C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\S
 C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\obj\Debug\Server.pdb
 C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\ServerClientClassLibrary.dll
 C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\ServerClientClassLibrary.pdb
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Newtonsoft.Json.xml

@@ -7,6 +7,8 @@ using System.Data.SqlClient;
 using System.Data.Sql;
 using System.Threading;
 using System.Collections;
+using ServerClientClassLibrary;
+using System.Data;
 
 namespace Server
 {
@@ -15,7 +17,6 @@ namespace Server
 
         private static Mutex mut = new Mutex();
         private static SqlConnection Connection = new SqlConnection();
-        private static SqlDataReader SqlReader;
 
         private static bool _connected;
 
@@ -53,49 +54,14 @@ namespace Server
             }
         }
 
-        public static bool ChangeUserLogin(string newLogin, string oldLogin)
-        {
-            SqlCommand command = new SqlCommand(
-                "UPDATE [Users] SET UserName = @UserName WHERE UserName = @oldLogin"
-                , Connection);
-            command.Parameters.AddWithValue("@UserName", newLogin);
-            command.Parameters.AddWithValue("@oldLogin", oldLogin);
-            try
-            {
-                command.ExecuteNonQuery();
-            }catch(Exception e)
-            {
-                return false;
-            }
-            return true;
-        }
-
-        public static bool ChangeUserPassword(string text, string login)
-        {
-            SqlCommand command = new SqlCommand(
-                "UPDATE [Users] SET Password = @Password WHERE UserName = @Login"
-                , Connection);
-            command.Parameters.AddWithValue("@Password", text);
-            command.Parameters.AddWithValue("@Login", login);
-            try
-            {
-                command.ExecuteNonQuery();
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-            return true;
-        }
-
         public static bool CreateUserProfile(string name, string password)
         {
             SqlCommand command = new SqlCommand(
-                "INSERT INTO [Users] (UserName,Password,Privilage) VALUES (@UserName, @Password, @Privilage)",
+                "INSERT INTO [Users] (UserName,Password,Privilege) VALUES (@UserName, @Password, @Privilege)",
                 Connection);
             command.Parameters.AddWithValue("@UserName", name);
             command.Parameters.AddWithValue("@Password", password);
-            command.Parameters.AddWithValue("@Privilage", "User");
+            command.Parameters.AddWithValue("@Privilege", "User");
             try
             {
                 command.ExecuteNonQuery();
@@ -109,7 +75,7 @@ namespace Server
         public static bool DeleteProfile(string login)
         {
             SqlCommand command = new SqlCommand(
-                "DELETE FROM [Users] WHERE UserName = @UserName"
+                "UPDATE Users SET Hiddden=0 WHERE login = @UserName"
                 , Connection);
             command.Parameters.AddWithValue("@UserName", login);
             try
@@ -123,25 +89,43 @@ namespace Server
             return true;
         }
 
+        public static object locker = new object();
+
         public static string ExecuteSqlReader(string text)
         {
             SqlCommand command = new SqlCommand(text, Connection);
-            StringBuilder buffer = new StringBuilder();
-            mut.WaitOne();
-            using (var sqlReader = command.ExecuteReader())
+            SelectJson selectjson = new SelectJson()
             {
-                while (sqlReader.Read())
+                Rows = new List<RowJson>(),
+                NameTable = new List<string>()
+            };
+            lock (locker)
+                using (var sqlReader = command.ExecuteReader())
                 {
-                    for (int i = 0; i < sqlReader.FieldCount; i++)
+                    var columns = sqlReader.FieldCount;
+                    for (int i = 0; i < columns; i++)
                     {
-                        buffer.Append(sqlReader.GetString(i) + "|");
+                        selectjson.NameTable.Add(sqlReader.GetName(i));
                     }
-                    buffer.Append("\n");
+                    while (sqlReader.Read())
+                    {
+                        RowJson row = new RowJson()
+                        {
+                            Row = new List<string>()
+                        };
+                        for (int i = 0; i < columns; i++)
+                        {
+                            var col = sqlReader.GetSchemaTable();
+                            //DataSet set = new DataSet();
+                            //SqlDataAdapter sqladapter = new SqlDataAdapter();
+                            //foreach(DataRelation c in col)
+                            //    c.DataSet.WriteXml(Console.Out);
+                            row.Row.Add(sqlReader.GetValue(i).ToString());
+                        }
+                        selectjson.Rows.Add(row);
+                    }
                 }
-            }
-            mut.ReleaseMutex();
-            buffer.Append("\0");
-            return buffer.ToString();
+            return Newtonsoft.Json.JsonConvert.SerializeObject(selectjson);
         } 
 
         public static void ExecuteNonSqlReader(string text)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using ServerClientClassLibrary;
-
+using Newtonsoft.Json;
 
 namespace Server
 {
@@ -12,28 +12,6 @@ namespace Server
     {
         IODialog Handler;
         Log ServerLog, UserLog;
-        IODialog IODialogWithClient;
-        delegate void Operation(Operations op, string command);
-        static Dictionary<Code.OperationCode, Operation> OperationFuncs = new Dictionary<Code.OperationCode, Operation>()
-        {
-            [Code.OperationCode.SELECT] = (op,command) => {
-                op.UserLog.Write("Select command: " + command);
-                var buffer = DataBaseOperations.ExecuteSqlReader(command);
-                op.Handler.SendMessage(buffer, (byte)Code.OperationCode.AnswerOK);
-            },
-            [Code.OperationCode.INSERT] = (op, command) => {
-                op.UserLog.Write("Insert command: " + command);
-                DataBaseOperations.ExecuteNonSqlReader(command);
-                op.Handler.SendMessage("", (byte)Code.OperationCode.AnswerOK);
-            },
-    };
-
-        static Operations()
-        {
-            
-        }
-       
-       
 
         public string UserName
         {
@@ -48,125 +26,109 @@ namespace Server
 
         public bool CheckConnection()
         {
-            return Handler.ReceiveMessage(out byte code) == Handler.PassPhrase;
+            return Handler.ReceiveMessage(out Code.OperationCode code) == Handler.PassPhrase;
         }
 
-        public void ExecuteCommand(string command, int code)
+        public void ExecuteCommand(string command, Code.OperationCode code)
         {
-            Execute(command, code / 10);
+            Execute(command, code);
         }
 
-        private void Execute(string command, int code)
+        private void Execute(string command, Code.OperationCode code)
         {
-            switch ((Code.OperationPurpose_1)(code % 10))
+            switch (code)
             {
-                case Code.OperationPurpose_1.DataBase:
-                    ExecuteDBOperation_10(command, code / 10);
-                    break;
-                case Code.OperationPurpose_1.Server:
-                    ExecuteServerOperation(command, code / 10);
-                    break;
-            }
-        }
-
-        private void ExecuteDBOperation_10(string command, int code)
-        {
-            switch ((Code.DBOperation_10)(code % 10))
-            {
-                case Code.DBOperation_10.UserData:
-                    ExecuteUserDataOperation(command, code);
-                    break;
-                case Code.DBOperation_10.Update:
+                case Code.OperationCode.UPDATE:
                     UserLog.Write("Update command: " + command);
                     DataBaseOperations.ExecuteNonSqlReader(command);
                     break;
-                case Code.DBOperation_10.Select:
-                    
+                    /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.SELECT:
+                    UserLog.Write("Select command: " + command);
+                    string buf = DataBaseOperations.ExecuteSqlReader(command);
+                    Handler.SendMessage(buf, Code.OperationCode.AnswerOK);
                     break;
-                case Code.DBOperation_10.Insert:
-                    
+                    /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.INSERT:
+                    UserLog.Write("Insert command: " + command);
+                    DataBaseOperations.ExecuteNonSqlReader(command);
                     break;
-                case Code.DBOperation_10.Delete:
+                    /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.DELETE:
                     UserLog.Write("Delete command: " + command);
                     DataBaseOperations.ExecuteNonSqlReader(command);
                     break;
-            }
-        }
-
-        private void ExecuteServerOperation(string command, int code)
-        {
-            switch ((Code.ServerOperation_10)(code % 10))
-            {
-                case Code.ServerOperation_10.ConnectionRefused:
+                    /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.ConnectionRefuse:
                     UserLog.Write(UserLog.UserName + " disconnected!");
                     UserLog.CloseLogFile();
                     Thread.CurrentThread.Abort();
                     break;
-            }
-        }
-
-        private void ExecuteUserDataOperation(string command, int code)
-        {
-            switch ((Code.UserDataOperation_100)(code % 10))
-            {
-                case Code.UserDataOperation_100.ChangeLogin:
+                    /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.Login:
                     {
-                        var userName = SupportClass.SubEnv(command, "UserName", ';');
-                        var password = SupportClass.SubEnv(command, "Password", ';');
-                        var newUserName = SupportClass.SubEnv(command, "NewUserName", ';');
+                        string userName, password;
+                        userName = SupportClass.SubEnv(command, "UserName", ';');
+                        password = SupportClass.SubEnv(command, "Password", ';');
                         if (DataBaseOperations.CheckUserLoginData(userName, password))
                         {
                             try
-                            {
-                                if (DataBaseOperations.ChangeUserLogin(newUserName, userName))
-                                {
-                                    Handler.SendMessage((byte)Code.OperationPurpose_1.Answer + ((int)Code.Answer_10.Success * 10));
-                                    UserLog.Write(UserLog.UserName + "changed his login from \"" + userName + "\" + to \"" + newUserName + "\"!");
-                                }
-                            }
-                            catch (Exception)
-                            {
-
-                            }
-                        }
-                    }
-                    break;
-                case Code.UserDataOperation_100.ChangePassword:
-                    {
-                        var userName = SupportClass.SubEnv(command, "UserName", ';');
-                        var password = SupportClass.SubEnv(command, "Password", ';');
-                        var newUserPassword = SupportClass.SubEnv(command, "NewUserPassword", ';');
-                        if (DataBaseOperations.CheckUserLoginData(userName, password))
-                        {
-                            try
-                            {
-                                if (DataBaseOperations.ChangeUserPassword(newUserPassword, userName))
-                                {
-                                    Handler.SendMessage((byte)Code.OperationPurpose_1.Answer + ((int)Code.Answer_10.Success * 10));
-                                    UserLog.Write(UserLog.UserName + "changed his password from \"" + userName + "\" + to \"" + newUserPassword + "\"!");
-                                }
-                            }
-                            catch (Exception)
-                            {
-
-                case Code.UserDataOperation_100.Auto:
-                    {
-                        string userName, password, buffer;
-                        while (true)
-                        {
-                            buffer = Handler.ReceiveMessage(out byte bufcode);
-                            userName = SupportClass.SubEnv(buffer, "UserName", ';');
-                            password = SupportClass.SubEnv(buffer, "Password", ';');
-                            if (DataBaseOperations.CheckUserLoginData(userName, password))
                             {
                                 UserLog = new Log(userName);
-                                Handler.SendMessage((byte)Code.OperationPurpose_1.Answer + ((int)Code.Answer_10.Success * 10));
-                            }
-                            else
+                                UserLog.Write(UserName + " Connected!");
+                                Handler.SendMessage(Code.OperationCode.AnswerOK);
+                            }catch(Exception e)
                             {
+                                ServerLog.Write("Error: " + e.Message);
+                                Thread.CurrentThread.Abort();
                             }
                         }
+                        else
+                        {
+                            Handler.SendMessage(Code.OperationCode.AnswerError);
+                        }
+                    } 
+                    break;
+                /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.InitConnection:
+                    {
+
                     }
+                    break;
+                case Code.OperationCode.GenerateUserData:
+                    Random rand = new Random(DateTime.Now.Millisecond);
+                    string stringrandom = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890";
+                    int len = stringrandom.Length;
+                    int count = int.Parse(command);
+                    GenUserDataJson users = new GenUserDataJson();
+                    string log, pass;
+                    for (int i = 0; i < count; i++)
+                    {
+                        log = ""; pass = "";
+                        for (int j = 0; j < 10; j++)
+                            log += stringrandom[rand.Next(0, len)];
+                        for(int j = 0; j < 10; j++)
+                            pass += stringrandom[rand.Next(0, len)];
+                        users.Users.Add(new UserData { Login = log, Password = pass });
+                        DataBaseOperations.CreateUserProfile(log, pass);
+                    }
+                    Handler.SendMessage(JsonConvert.SerializeObject(users), (byte)Code.OperationCode.AnswerOK);
+                    break;
+                    /////////////////////////////////////////////////////////////////////////////////
+                case Code.OperationCode.DeleteUsers:
+                    UserLog.Write("DeleteUsers command: " + command);
+                    try
+                    {
+                        string[] logins = command.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var l in logins)
+                            DataBaseOperations.ExecuteNonSqlReader(l);
+                    }catch(Exception e)
+                    {
+                        Handler.SendMessage(Code.OperationCode.AnswerError);
+                    }
+                    Handler.SendMessage(Code.OperationCode.AnswerOK);
+                    break;
+                    /////////////////////////////////////////////////////////////////////////////////
             }
         }
     }

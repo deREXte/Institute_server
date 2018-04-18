@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Client
+namespace ClientWF
 {
     static class Program
     {
@@ -16,18 +17,18 @@ namespace Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            RunApp();
-        }
-
-        static void RunApp()
-        {
-            Application.Run(new AuthorizationForm());
-            if (Data.Authorized)
+            ConnectForm authof = new ConnectForm();
+            Application.Run(authof);
+            ServerClientClassLibrary.IODialog handler = authof.GetInformation();
+            if(handler == null)
             {
-                Application.Run(new Client());
+                authof.Dispose();
+                return;
+            }
+            else
+            {
+                Application.Run(new MainForm(handler));
             }
         }
-
-
     }
 }

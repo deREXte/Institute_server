@@ -20,7 +20,7 @@ namespace Server
         public void StartListen()
         {
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            IPAddress ipAddress = ipHostInfo.AddressList[1];
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
 
             Socket listener = new Socket(ipAddress.AddressFamily,

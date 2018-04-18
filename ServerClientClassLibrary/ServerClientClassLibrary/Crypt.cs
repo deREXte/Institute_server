@@ -130,7 +130,7 @@ namespace ServerClientClassLibrary
                 for (int j = 0; j < firstnumberofdates[i].Length; j++)
                 {
                     char charbuf = firstnumberofdates[i][j];
-                    result += (char)(((buf & 1) == 1) ? charbuf + buf++ : charbuf - buf++);
+                    //result += (char)(((buf & 1) == 1) ? charbuf + buf++ : charbuf - buf++);
                     if((buf & 1) == 1)
                     {
                         if (charbuf + buf > 'z')

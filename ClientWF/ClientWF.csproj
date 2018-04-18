@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{848B1A32-8630-4FBC-A314-681A7EC451CC}</ProjectGuid>
+    <ProjectGuid>{7439F9B7-682A-4AC7-8716-A8674CA37298}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Client</RootNamespace>
-    <AssemblyName>Client</AssemblyName>
+    <RootNamespace>ClientWF</RootNamespace>
+    <AssemblyName>ClientWF</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,25 +48,46 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs">
+    <Compile Include="ConnectForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Client.Designer.cs">
-      <DependentUpon>Client.cs</DependentUpon>
+    <Compile Include="ConnectForm.Designer.cs">
+      <DependentUpon>ConnectForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="AuthorizationForm.cs">
+    <Compile Include="Data.cs" />
+    <Compile Include="GenerateUsers.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>AuthorizationForm.cs</DependentUpon>
+    <Compile Include="GenerateUsers.Designer.cs">
+      <DependentUpon>GenerateUsers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GenerateUsersResult.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GenerateUsersResult.Designer.cs">
+      <DependentUpon>GenerateUsersResult.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Client.resx">
-      <DependentUpon>Client.cs</DependentUpon>
+    <Compile Include="SqlCommand\SqlCommand.cs" />
+    <Compile Include="SQLExecuter.cs" />
+    <EmbeddedResource Include="ConnectForm.resx">
+      <DependentUpon>ConnectForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>AuthorizationForm.cs</DependentUpon>
+    <EmbeddedResource Include="GenerateUsers.resx">
+      <DependentUpon>GenerateUsers.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GenerateUsersResult.resx">
+      <DependentUpon>GenerateUsersResult.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -74,6 +98,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -86,6 +111,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServerClientClassLibrary\ServerClientClassLibrary\ServerClientClassLibrary.csproj">
+      <Project>{41ef60db-6c2c-4306-976d-9559cf4e3bf6}</Project>
+      <Name>ServerClientClassLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

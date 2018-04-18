@@ -21,11 +21,12 @@ namespace ServerClientClassLibrary
          */
     public class Code
     {
-        public enum OperationCode : byte
+        public enum OperationCode 
         {
             /*0 - 19: Answers*/
             AnswerOK = 0,
             AnswerError = 1,
+            ConnectionRefuse = 2,
 
             /*20 - 39: Requests*/
             SELECT = 20,
@@ -36,6 +37,10 @@ namespace ServerClientClassLibrary
             /*40 - 59: UserData*/
             Login = 40,
             GenerateUserData = 41,
+            CreateUsers = 42,
+            DeleteUsers = 43,
+
+            InitConnection = 60,
         }
     }
 }

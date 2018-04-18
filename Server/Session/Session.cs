@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Net.Sockets;
 using ServerClientClassLibrary;
+using Newtonsoft.Json;
 
 namespace Server
 {
@@ -24,7 +25,11 @@ namespace Server
         public void CreateSession()
         {
             if (!Operations.CheckConnection())
+            {
+                IODialogWithClient.SendMessage(Code.OperationCode.AnswerError);
                 return;
+            }
+            IODialogWithClient.SendMessage(Code.OperationCode.AnswerOK);
             StartDialog();
         }
 
@@ -33,16 +38,8 @@ namespace Server
             string msg;
             while (true)
             {  //
-                try
-                {
-                    msg = IODialogWithClient.ReceiveMessage(out byte code);
-                    Operations.ExecuteCommand(msg, code);
-                }
-                catch (SocketException e)
-                {
-                    ServerLog.Write(Operations.UserName + " disconnected with error!");
-                    return;
-                }
+                msg = IODialogWithClient.ReceiveMessage(out Code.OperationCode code);
+                Operations.ExecuteCommand(msg, code);
             }
         }
 

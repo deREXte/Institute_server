@@ -35,14 +35,7 @@ namespace Server
         {
             if (!File.Exists(FullSavePath)) 
                 File.Create(FullSavePath).Close();
-            try
-            {
-                LogFile = new StreamWriter(FullSavePath, true);
-            }
-            catch (IOException)
-            {
-                return;
-            }
+            LogFile = new StreamWriter(FullSavePath, true);
             FileOpened = true;
         }
 

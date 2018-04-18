@@ -13,10 +13,17 @@ namespace ServerClientClassLibrary
 
     public class IODialog
     {
+
         const int PacketLength = 4096;
 
+        /// <summary>
+        /// Сокет для общения между клиентом и сервером
+        /// </summary>
         Socket Handler;
 
+        /// <summary>
+        /// Ключ шифрования
+        /// </summary>
         public string PassPhrase
         {
             get;
@@ -29,26 +36,40 @@ namespace ServerClientClassLibrary
             PassPhrase = Crypt.GeneratePassPhrase();
         }
 
-        public void SendMessage(byte code)
+        /// <summary>
+        /// Отпраляет лишь код.
+        /// </summary>
+        /// <param name="code">Код</param>
+        public void SendMessage(Code.OperationCode code)
         {
-            Handler.Send(new byte[1] { code }, 1, SocketFlags.None);
+            Handler.Send(new byte[1] { (byte)code }, 1, SocketFlags.None);
         }
 
-        public void SendMessage(string text, byte code)
+        /// <summary>
+        /// Отправляет строку text с кодом code
+        /// </summary>
+        /// <param name="text">Сообщение для отправки</param>
+        /// <param name="code">Код сообщения</param>
+        public void SendMessage(string text, Code.OperationCode code)
         {
             text = Crypt.Encrypt(text, PassPhrase);
-            SendMessage(Encoding.UTF8.GetBytes(text), code);
+            SendMessage(Encoding.UTF8.GetBytes(text), (byte)code);
         }
 
         private void SendMessage(byte[] text, byte code)
         {
             byte[] sendbuffer = new byte[text.Length + 1];
             sendbuffer[0] = code;
-            text.CopyTo(sendbuffer, 0);
+            text.CopyTo(sendbuffer, 1);
             Handler.Send(sendbuffer, sendbuffer.Length, SocketFlags.None);
         }
 
-        public string ReceiveMessage(out byte code)
+        /// <summary>
+        /// Принимает сообщение от отправителя
+        /// </summary>
+        /// <param name="code">Код оперции полученный от отправителя</param>
+        /// <returns>Возращает сообщение полученное от отправителя</returns>
+        public string ReceiveMessage(out Code.OperationCode code)
         {
             code = 0;
             StringBuilder result = new StringBuilder();
@@ -59,14 +80,29 @@ namespace ServerClientClassLibrary
             do
             {
                 numberOfBytesRead = netstream.Read(buffer, 0, buffer.Length);
-                result.Append(Encoding.UTF8.GetString(buffer, 0, numberOfBytesRead - 1));
+                result.Append(Encoding.UTF8.GetString(buffer, 0, numberOfBytesRead ));
                 if (first_message)
                 {
                     first_message = false;
-                    code = (byte)result[0];
+                    code = (Code.OperationCode)result[0];
+                    result.Remove(0, 1);
                 }
             } while (netstream.DataAvailable);
-            return Crypt.Decrypt(result.ToString(), PassPhrase);
+            string s = result.ToString();
+            if (s.Length == 0)
+                return s;
+            return Crypt.Decrypt(s, PassPhrase);
+        }
+
+        /// <summary>
+        /// Получает код операции
+        /// </summary>
+        /// <returns>Возращает код</returns>
+        public Code.OperationCode ReceiveCode()
+        {
+            byte[] buffer = new byte[1];
+            Handler.Receive(buffer);
+            return (Code.OperationCode)buffer[0];
         }
     }
 }
