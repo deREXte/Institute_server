@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using ServerClientClassLibrary;
 using Newtonsoft.Json;
+using Server.DataTableInfo;
+using ServerClientClassLibrary.JSONTypes;
 
 namespace Server
 {
@@ -26,37 +28,37 @@ namespace Server
 
         public bool CheckConnection()
         {
-            return Handler.ReceiveMessage(out Code.OperationCode code) == Handler.PassPhrase;
+            return Handler.ReceiveMessage<QueryJson>().Message == Handler.PassPhrase;
         }
 
-        public void ExecuteCommand(string command, Code.OperationCode code)
+        public void ExecuteCommand(QueryJson command)
         {
-            Execute(command, code);
+            Execute(command);
         }
 
-        private void Execute(string command, Code.OperationCode code)
+        private void Execute(Msg command)
         {
-            switch (code)
+            switch (command.Code)
             {
                 case Code.OperationCode.UPDATE:
-                    UserLog.Write("Update command: " + command);
-                    DataBaseOperations.ExecuteNonSqlReader(command);
+                    UserLog.Write("Update command: " + command.Message);
+                    DataBaseOperations.ExecuteNonSqlReader(command.Message);
                     break;
                     /////////////////////////////////////////////////////////////////////////////////
                 case Code.OperationCode.SELECT:
-                    UserLog.Write("Select command: " + command);
-                    string buf = DataBaseOperations.ExecuteSqlReader(command);
-                    Handler.SendMessage(buf, Code.OperationCode.AnswerOK);
+                    UserLog.Write("Select command: " + command.Message);
+                    SelectJson buf = DataBaseOperations.ExecuteSqlReader(command.Message);
+                    Handler.SendMessage(buf);
                     break;
                     /////////////////////////////////////////////////////////////////////////////////
                 case Code.OperationCode.INSERT:
-                    UserLog.Write("Insert command: " + command);
-                    DataBaseOperations.ExecuteNonSqlReader(command);
+                    UserLog.Write("Insert command: " + command.Message);
+                    DataBaseOperations.ExecuteNonSqlReader(command.Message);
                     break;
                     /////////////////////////////////////////////////////////////////////////////////
                 case Code.OperationCode.DELETE:
-                    UserLog.Write("Delete command: " + command);
-                    DataBaseOperations.ExecuteNonSqlReader(command);
+                    UserLog.Write("Delete command: " + command.Message);
+                    DataBaseOperations.ExecuteNonSqlReader(command.Message);
                     break;
                     /////////////////////////////////////////////////////////////////////////////////
                 case Code.OperationCode.ConnectionRefuse:
@@ -68,8 +70,8 @@ namespace Server
                 case Code.OperationCode.Login:
                     {
                         string userName, password;
-                        userName = SupportClass.SubEnv(command, "UserName", ';');
-                        password = SupportClass.SubEnv(command, "Password", ';');
+                        userName = SupportClass.SubEnv(command.Message, "UserName", ';');
+                        password = SupportClass.SubEnv(command.Message, "Password", ';');
                         if (DataBaseOperations.CheckUserLoginData(userName, password))
                         {
                             try
@@ -99,7 +101,7 @@ namespace Server
                     Random rand = new Random(DateTime.Now.Millisecond);
                     string stringrandom = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890";
                     int len = stringrandom.Length;
-                    int count = int.Parse(command);
+                    int count = int.Parse(command.Message);
                     GenUserDataJson users = new GenUserDataJson();
                     string log, pass;
                     for (int i = 0; i < count; i++)
@@ -112,14 +114,14 @@ namespace Server
                         users.Users.Add(new UserData { Login = log, Password = pass });
                         DataBaseOperations.CreateUserProfile(log, pass);
                     }
-                    Handler.SendMessage(JsonConvert.SerializeObject(users), (byte)Code.OperationCode.AnswerOK);
+                    Handler.SendMessage(users);
                     break;
                     /////////////////////////////////////////////////////////////////////////////////
                 case Code.OperationCode.DeleteUsers:
-                    UserLog.Write("DeleteUsers command: " + command);
+                    UserLog.Write("DeleteUsers command: " + command.Message);
                     try
                     {
-                        string[] logins = command.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                        string[] logins = command.Message.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                         foreach (var l in logins)
                             DataBaseOperations.ExecuteNonSqlReader(l);
                     }catch(Exception e)

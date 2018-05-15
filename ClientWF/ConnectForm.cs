@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Net.Sockets;
 using System.Net;
 using ServerClientClassLibrary;
+using ServerClientClassLibrary.JSONTypes;
 
 namespace ClientWF
 {
@@ -16,16 +17,17 @@ namespace ClientWF
     {
         Socket Handler;
         IODialog IODialog;
+        SQLExecuter Executer;
         bool Connected, Authorization;
 
         public ConnectForm()
         {
             InitializeComponent();
+            Executer = new SQLExecuter(IODialog, (msg) => MessageBox.Show(msg));
             byte[] bytes = new byte[1024];
-            IPHostEntry ipHostInfo = Dns.GetHostEntry("192.168.1.36");
+            IPHostEntry ipHostInfo = Dns.GetHostEntry("192.168.1.33");
             IPAddress ipAddress = ipHostInfo.AddressList[1];
             IPEndPoint remoteEP = new IPEndPoint(ipAddress, 11000);
-
             // Create a TCP/IP  socket.
             Handler = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
@@ -80,16 +82,20 @@ namespace ClientWF
         private bool Connect()
         {
             string login = "UserName=", password = "Password=";
+            bool ok = false;
             login += TextBox_Login.Text + ";";
             password += TextBox_Password.Text + ";";
-            IODialog.SendMessage(login + password, Code.OperationCode.Login);
-            return IODialog.ReceiveCode() == Code.OperationCode.AnswerOK;
+            Executer.ApplyCommand<QueryJson>(new QueryJson(Code.OperationCode.Login, password + login),
+                (msg) => ok = msg.Code == Code.OperationCode.AnswerOK);
+            return ok; 
         }
 
         public bool PassConnectionTest()
         {
             IODialog = new IODialog(Handler);
-            IODialog.SendMessage(IODialog.PassPhrase, Code.OperationCode.InitConnection);
+            Executer.ApplyCommand<QueryJson>(
+                new QueryJson(Code.OperationCode.InitConnection, IODialog.PassPhrase),
+                null);
             return IODialog.ReceiveCode() == Code.OperationCode.AnswerOK;
         }
         

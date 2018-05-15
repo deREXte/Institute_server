@@ -75,7 +75,7 @@ namespace Server
         public static bool DeleteProfile(string login)
         {
             SqlCommand command = new SqlCommand(
-                "UPDATE Users SET Hiddden=0 WHERE login = @UserName"
+                "UPDATE Users SET Hidden=0 WHERE login = @UserName"
                 , Connection);
             command.Parameters.AddWithValue("@UserName", login);
             try
@@ -91,21 +91,22 @@ namespace Server
 
         public static object locker = new object();
 
-        public static string ExecuteSqlReader(string text)
+        public static SelectJson ExecuteSqlReader(string text)
         {
             SqlCommand command = new SqlCommand(text, Connection);
             SelectJson selectjson = new SelectJson()
             {
                 Rows = new List<RowJson>(),
-                NameTable = new List<string>()
+                ColumnName = new List<string>()
             };
+
             lock (locker)
                 using (var sqlReader = command.ExecuteReader())
                 {
                     var columns = sqlReader.FieldCount;
                     for (int i = 0; i < columns; i++)
                     {
-                        selectjson.NameTable.Add(sqlReader.GetName(i));
+                        selectjson.ColumnName.Add(sqlReader.GetName(i));
                     }
                     while (sqlReader.Read())
                     {
@@ -125,7 +126,7 @@ namespace Server
                         selectjson.Rows.Add(row);
                     }
                 }
-            return Newtonsoft.Json.JsonConvert.SerializeObject(selectjson);
+            return selectjson;
         } 
 
         public static void ExecuteNonSqlReader(string text)

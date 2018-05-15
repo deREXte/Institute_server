@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using ServerClientClassLibrary;
 using Newtonsoft.Json;
+using ServerClientClassLibrary.JSONTypes;
 
 namespace ClientWF
 {
     class SQLExecuter
     {
 
-        public delegate void Print<T>(Code.OperationCode c,T js) where T : StructJson;
+        public delegate void Print<T>(T js) where T : Msg;
         public delegate void PrintError(string msg);
 
         IODialog Handler;
@@ -30,54 +31,31 @@ namespace ClientWF
         /// <param name="c">Код операции.Код операции будет изменен в данной функции</param>
         /// <param name="data">Будут ли данные от сервера</param>
         /// <param name="print">Делегат для вывода информации</param>
-        public void ApplyCommand<T>(string command, Code.OperationCode c, bool data, Print<T> print) where T : StructJson
+        public void ApplyCommand<T>(QueryJson msg, Print<T> print) where T : Msg
         {
-            string msg = SendCommandAndReceive(command,ref c);
-            if(c == Code.OperationCode.AnswerError)
+            var rec = SendCommandAndReceive<T>(msg);
+            if(rec.Code == Code.OperationCode.AnswerError)
             {
-                PrintErr(msg);
+                PrintErr(msg.Message);
                 return;
             }
-            if (data)
-            {
-                var js = JsonConvert.DeserializeObject<T>(msg);
-                print?.Invoke(c, js);
-            }
-            else
-                print?.Invoke(c, null);
+            print?.Invoke(rec);
         }
 
-
-        public void ApplyCommand<T>(Code.OperationCode c, Print<T> print) where T : StructJson
+        public void ApplyCommand(Msg msg)
         {
-            string msg = SendCommandAndReceive("", ref c);
-            if(c == Code.OperationCode.AnswerError)
-            {
-                PrintErr(msg);
-                return;
-            }
-            print?.Invoke(c, null);
+            Send(msg);
         }
 
-        public void ApplyCommand(Code.OperationCode c)
+        private T SendCommandAndReceive<T>(Msg msg) where T : Msg
         {
-            SendCommand("", c);
+            Handler.SendMessage(msg);
+            return Handler.ReceiveMessage<T>();
         }
 
-        public void ApplyCommand(string command, Code.OperationCode c)
+        private void Send(Msg msg)
         {
-            
-        }
-
-        private string SendCommandAndReceive(string command, ref Code.OperationCode c)
-        {
-            Handler.SendMessage(command, c);
-            return Handler.ReceiveMessage(out c);
-        }
-
-        private void SendCommand(string command, Code.OperationCode c)
-        {
-            Handler.SendMessage(command, c);
+            Handler.SendMessage(msg);
         }
     }
 }

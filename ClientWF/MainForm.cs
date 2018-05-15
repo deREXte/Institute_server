@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
 using ServerClientClassLibrary;
+using ServerClientClassLibrary.JSONTypes;
 using Newtonsoft.Json;
 
 
@@ -24,25 +25,25 @@ namespace ClientWF
             InitializeComponent();
             SQLExecuter = new SQLExecuter(iodialog, PrintOnError);
             ContextMenuStrip cms = new ContextMenuStrip();
-            cms.Items.Add("Добавить столбец", null, AddColumn_Click);
-            cms.Items.Add("Добавить столбец со значение", null, AddColumn_Click);
-            cms.Items.Add("Добавить столбец с условием", null, AddColumn_Click);
+            cms.Items.Add("Добавить строку", null, AddRow_Click);
+            cms.Items.Add("Обновить строку по условию", null, AddRowWithCondition_Click);
+            cms.Items.Add("Обновить строки", null, UpdateRow_Click);
             DataGridView_MainView.ContextMenuStrip = cms;
         }
 
         #region DataGridContexMenu
 
-        private void AddColumn_Click(object o, EventArgs e)
+        private void AddRow_Click(object o, EventArgs e)
         {
 
         } 
 
-        private void AddColumnWithValue_Click(object o, EventArgs e)
+        private void AddRowWithCondition_Click(object o, EventArgs e)
         {
 
         } 
 
-        private void AddColumnWithCondition_Click(object o, EventArgs e)
+        private void UpdateRow_Click(object o, EventArgs e)
         {
 
         } 
@@ -54,24 +55,24 @@ namespace ClientWF
             MessageBox.Show(msg);
         }
 
-        public void PrintUserData(Code.OperationCode c, GenUserDataJson js)
+        public void PrintUserData(GenUserDataJson js)
         {
             GenerateUsersResult gnr = new GenerateUsersResult(js);
             gnr.ShowDialog(this);
         }
 
-        public void PrintDataGridView(Code.OperationCode c, SelectJson js)
+        public void PrintDataGridView(SelectJson js)
         {
             DataGridView_MainView.Rows.Clear();
             DataGridView_MainView.Columns.Clear();
-            foreach (var t in js.NameTable)
+            foreach (var t in js.ColumnName)
                 DataGridView_MainView.Columns.Add(t, t);
             int i = 0;
             foreach (var r in js.Rows)
                 DataGridView_MainView.Rows.Insert(i++, r.Row.ToArray());
         }
 
-        public void PrintListTables(Code.OperationCode c, SelectJson js)
+        public void PrintListTables(SelectJson js)
         {
             ListBox_Tables.Items.Clear();
                 foreach (var t in js.Rows)
@@ -86,24 +87,23 @@ namespace ClientWF
         private void GetTableList()
         {
             SQLExecuter.ApplyCommand<SelectJson>(
-                "SELECT name FROM dbo.sysobjects where xtype = 'U' order by name", 
-                Code.OperationCode.SELECT,
-                true,
+                new QueryJson(Code.OperationCode.SELECT, "SELECT name FROM dbo.sysobjects where xtype = 'U' order by name"),
                 PrintListTables);
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            SQLExecuter.ApplyCommand(Code.OperationCode.ConnectionRefuse);
+            SQLExecuter.ApplyCommand(new QueryJson(Code.OperationCode.ConnectionRefuse, ""));
         }
 
         private void ListBox_Tables_DoubleClick(object sender, EventArgs e)
         {
             var table = ListBox_Tables.Items[ListBox_Tables.SelectedIndex].ToString();
             SQLExecuter.ApplyCommand<SelectJson>(
-                "SELECT * FROM " + table, 
-                Code.OperationCode.SELECT,
-                true,
+                new QueryJson(Code.OperationCode.SELECT, "SELECT * FROM " + table)
+                {
+                    TableName = table
+                },
                 PrintDataGridView);
         }
 
@@ -113,11 +113,14 @@ namespace ClientWF
             if(gu.ShowDialog(this) == DialogResult.OK)
             {
                 SQLExecuter.ApplyCommand<GenUserDataJson>(
-                    gu.textBox_Input.Text, 
-                    Code.OperationCode.GenerateUserData, 
-                    true, 
-                    PrintUserData);
+                    new QueryJson(Code.OperationCode.GenerateUserData, gu.textBox_Input.Text),
+                        PrintUserData);
             }
+        }
+
+        private void DataGridView_MainView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            // SQLExecuter.ApplyCommand();
         }
     }
 }

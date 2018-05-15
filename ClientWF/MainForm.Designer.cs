@@ -47,6 +47,7 @@
             this.DataGridView_MainView.Name = "DataGridView_MainView";
             this.DataGridView_MainView.Size = new System.Drawing.Size(655, 311);
             this.DataGridView_MainView.TabIndex = 0;
+            this.DataGridView_MainView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView_MainView_CellEndEdit);
             // 
             // ButtonGetTableList
             // 

@@ -66,6 +66,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataBaseOperations.cs" />
+    <Compile Include="DataTableInfo\DataTableInfo.cs" />
+    <Compile Include="DataTableInfo\IDependencesInitializer.cs" />
     <Compile Include="Listener.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

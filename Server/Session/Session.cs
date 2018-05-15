@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Net.Sockets;
 using ServerClientClassLibrary;
+using ServerClientClassLibrary.JSONTypes;
 using Newtonsoft.Json;
 
 namespace Server
@@ -35,11 +36,10 @@ namespace Server
 
         private void StartDialog()
         {
-            string msg;
             while (true)
             {  //
-                msg = IODialogWithClient.ReceiveMessage(out Code.OperationCode code);
-                Operations.ExecuteCommand(msg, code);
+                var msg = IODialogWithClient.ReceiveMessage<QueryJson>();
+                Operations.ExecuteCommand(msg);
             }
         }
 

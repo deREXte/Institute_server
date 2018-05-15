@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Configuration;
 using System.Collections.Specialized;
-
+using Newtonsoft.Json;
 
 namespace ServerClientClassLibrary
 {
@@ -42,7 +42,10 @@ namespace ServerClientClassLibrary
         /// <param name="code">Код</param>
         public void SendMessage(Code.OperationCode code)
         {
-            Handler.Send(new byte[1] { (byte)code }, 1, SocketFlags.None);
+            Msg msg = new Msg(code, "");
+            Handler.Send(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(msg)),
+                1,
+                SocketFlags.None);
         }
 
         /// <summary>
@@ -50,18 +53,17 @@ namespace ServerClientClassLibrary
         /// </summary>
         /// <param name="text">Сообщение для отправки</param>
         /// <param name="code">Код сообщения</param>
-        public void SendMessage(string text, Code.OperationCode code)
+        public void SendMessage<T>(T msg) where T : Msg
         {
+            string text = JsonConvert.SerializeObject(msg);
             text = Crypt.Encrypt(text, PassPhrase);
-            SendMessage(Encoding.UTF8.GetBytes(text), (byte)code);
+            SendMessage(Encoding.UTF8.GetBytes(text));
         }
 
-        private void SendMessage(byte[] text, byte code)
+        private void SendMessage(byte[] text)
         {
-            byte[] sendbuffer = new byte[text.Length + 1];
-            sendbuffer[0] = code;
-            text.CopyTo(sendbuffer, 1);
-            Handler.Send(sendbuffer, sendbuffer.Length, SocketFlags.None);
+            text.CopyTo(text, 1);
+            Handler.Send(text, text.Length, SocketFlags.None);
         }
 
         /// <summary>
@@ -69,29 +71,21 @@ namespace ServerClientClassLibrary
         /// </summary>
         /// <param name="code">Код оперции полученный от отправителя</param>
         /// <returns>Возращает сообщение полученное от отправителя</returns>
-        public string ReceiveMessage(out Code.OperationCode code)
+        public T ReceiveMessage<T>() where T: Msg
         {
-            code = 0;
             StringBuilder result = new StringBuilder();
             var buffer = new byte[4096];
-            var first_message = true;
             var netstream = new NetworkStream(Handler, true);
             var numberOfBytesRead = 0;
             do
             {
                 numberOfBytesRead = netstream.Read(buffer, 0, buffer.Length);
                 result.Append(Encoding.UTF8.GetString(buffer, 0, numberOfBytesRead ));
-                if (first_message)
-                {
-                    first_message = false;
-                    code = (Code.OperationCode)result[0];
-                    result.Remove(0, 1);
-                }
             } while (netstream.DataAvailable);
             string s = result.ToString();
             if (s.Length == 0)
-                return s;
-            return Crypt.Decrypt(s, PassPhrase);
+                return null;
+            return JsonConvert.DeserializeObject<T>(Crypt.Decrypt(s, PassPhrase));
         }
 
         /// <summary>
