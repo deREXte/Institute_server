@@ -7,8 +7,10 @@ using System.Data.SqlClient;
 using System.Data.Sql;
 using System.Threading;
 using System.Collections;
-using ServerClientClassLibrary;
+using ServerClientClassLibrary.JSONTypes;
 using System.Data;
+using System.IO;
+using System.Xml;
 
 namespace Server
 {
@@ -75,7 +77,7 @@ namespace Server
         public static bool DeleteProfile(string login)
         {
             SqlCommand command = new SqlCommand(
-                "UPDATE Users SET Hidden=0 WHERE login = @UserName"
+                "UPDATE Users SET Hidden=1 WHERE login=@UserName"
                 , Connection);
             command.Parameters.AddWithValue("@UserName", login);
             try
@@ -91,36 +93,47 @@ namespace Server
 
         public static object locker = new object();
 
+        public static DataTableJson ExecuteDataTable(string command)
+        {
+            SqlDataAdapter adapter = new SqlDataAdapter(command, Connection);
+            DataTable dataTable = new DataTable();
+            adapter.Fill(dataTable);
+            StringBuilder xmlString = new StringBuilder();
+            var xmlWriter = XmlWriter.Create(xmlString);
+            dataTable.WriteXml(xmlWriter);
+            DataTableJson dataTableJson = new DataTableJson()
+            {
+                Code = ServerClientClassLibrary.Code.OperationCode.AnswerOK,
+                DataTable = xmlString.ToString(),
+            };
+            return dataTableJson;
+        }
+
         public static SelectJson ExecuteSqlReader(string text)
         {
             SqlCommand command = new SqlCommand(text, Connection);
             SelectJson selectjson = new SelectJson()
             {
                 Rows = new List<RowJson>(),
-                ColumnName = new List<string>()
+                TableSchema = new TableSchema(),
             };
-
             lock (locker)
                 using (var sqlReader = command.ExecuteReader())
                 {
                     var columns = sqlReader.FieldCount;
                     for (int i = 0; i < columns; i++)
                     {
-                        selectjson.ColumnName.Add(sqlReader.GetName(i));
+                        selectjson.TableSchema.Columns.Add(new Column()
+                        {
+                            Name = sqlReader.GetName(i),
+                            TypeName = sqlReader.GetDataTypeName(i),
+                        });
                     }
                     while (sqlReader.Read())
                     {
-                        RowJson row = new RowJson()
-                        {
-                            Row = new List<string>()
-                        };
+                        RowJson row = new RowJson();
                         for (int i = 0; i < columns; i++)
                         {
-                            var col = sqlReader.GetSchemaTable();
-                            //DataSet set = new DataSet();
-                            //SqlDataAdapter sqladapter = new SqlDataAdapter();
-                            //foreach(DataRelation c in col)
-                            //    c.DataSet.WriteXml(Console.Out);
                             row.Row.Add(sqlReader.GetValue(i).ToString());
                         }
                         selectjson.Rows.Add(row);

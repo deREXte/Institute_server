@@ -33,7 +33,7 @@ namespace ServerClientClassLibrary
         public IODialog(Socket socket)
         {
             Handler = socket;
-            PassPhrase = Crypt.GeneratePassPhrase();
+            //PassPhrase = Crypt.GeneratePassPhrase();
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace ServerClientClassLibrary
         public void SendMessage<T>(T msg) where T : Msg
         {
             string text = JsonConvert.SerializeObject(msg);
-            text = Crypt.Encrypt(text, PassPhrase);
+            //text = Crypt.Encrypt(text, PassPhrase);
             SendMessage(Encoding.UTF8.GetBytes(text));
         }
 
@@ -85,18 +85,12 @@ namespace ServerClientClassLibrary
             string s = result.ToString();
             if (s.Length == 0)
                 return null;
-            return JsonConvert.DeserializeObject<T>(Crypt.Decrypt(s, PassPhrase));
+            return JsonConvert.DeserializeObject<T>(/*Crypt.Decrypt(*/s/*, PassPhrase)*/);
         }
 
-        /// <summary>
-        /// Получает код операции
-        /// </summary>
-        /// <returns>Возращает код</returns>
-        public Code.OperationCode ReceiveCode()
+        public void Close()
         {
-            byte[] buffer = new byte[1];
-            Handler.Receive(buffer);
-            return (Code.OperationCode)buffer[0];
+            Handler.Close();
         }
     }
 }

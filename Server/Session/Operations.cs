@@ -64,6 +64,7 @@ namespace Server
                 case Code.OperationCode.ConnectionRefuse:
                     UserLog.Write(UserLog.UserName + " disconnected!");
                     UserLog.CloseLogFile();
+                    Handler.Close();
                     Thread.CurrentThread.Abort();
                     break;
                     /////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +100,7 @@ namespace Server
                     break;
                 case Code.OperationCode.GenerateUserData:
                     Random rand = new Random(DateTime.Now.Millisecond);
-                    string stringrandom = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890";
+                    string stringrandom = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_1234567890♀♀";
                     int len = stringrandom.Length;
                     int count = int.Parse(command.Message);
                     GenUserDataJson users = new GenUserDataJson();

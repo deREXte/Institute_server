@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using ServerClientClassLibrary;
+using ServerClientClassLibrary.JSONTypes;
 using System.IO;
 
 namespace ClientWF
@@ -26,7 +26,7 @@ namespace ClientWF
 
         private void button_SaveInFile_Click(object sender, EventArgs e)
         {
-            System.IO.Stream stream;
+            Stream stream;
             saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
             saveFileDialog.FilterIndex = 2;
             saveFileDialog.RestoreDirectory = true;

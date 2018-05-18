@@ -17,18 +17,7 @@ namespace ClientWF
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            ConnectForm authof = new ConnectForm();
-            Application.Run(authof);
-            ServerClientClassLibrary.IODialog handler = authof.GetInformation();
-            if(handler == null)
-            {
-                authof.Dispose();
-                return;
-            }
-            else
-            {
-                Application.Run(new MainForm(handler));
-            }
+            Application.Run(new MainForm());
         }
     }
 }

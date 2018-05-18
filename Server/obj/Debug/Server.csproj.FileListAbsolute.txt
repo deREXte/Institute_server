@@ -15,3 +15,14 @@ C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\S
 C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\ServerClientClassLibrary.pdb
 C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Newtonsoft.Json.dll
 C:\Users\Алексей\Documents\Visual Studio 2017\Projects\Institute_server\Server\bin\Debug\Newtonsoft.Json.xml
+B:\Projects\Inst_server\Institute_server\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
+B:\Projects\Inst_server\Institute_server\Server\obj\Debug\Server.csproj.CoreCompileInputs.cache
+B:\Projects\Inst_server\Institute_server\Server\obj\Debug\Server.exe
+B:\Projects\Inst_server\Institute_server\Server\obj\Debug\Server.pdb
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\Server.exe.config
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\Server.exe
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\Server.pdb
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\Newtonsoft.Json.dll
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\ServerClientClassLibrary.dll
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\Newtonsoft.Json.xml
+B:\Projects\Inst_server\Institute_server\Server\bin\Debug\ServerClientClassLibrary.pdb

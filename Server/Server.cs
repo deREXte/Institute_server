@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Configuration;
 using System.Collections.Specialized;
+using System.Security.Cryptography;
 
 
 namespace Server
@@ -14,6 +15,7 @@ namespace Server
     {
         Timer TimerRetryConnectToDB;
         int RetryConnectionTime;
+        SHA256 SHA256a;
 
         public void StartServer()
         {

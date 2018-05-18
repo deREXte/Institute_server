@@ -41,6 +41,9 @@ namespace ServerClientClassLibrary
             DeleteUsers = 43,
 
             InitConnection = 60,
+
+            UserAuthorized = 70,
+            AdminAuthorized = 71,
         }
     }
 }

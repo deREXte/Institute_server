@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServerClientClassLibrary
+namespace ServerClientClassLibrary.JSONTypes
 {
     public class SelectJson : StructJson
     {
-        public List<string> ColumnName { get; set; }
+        public TableSchema TableSchema { get; set; }
         public List<RowJson> Rows { get; set; }
 
         public SelectJson()
@@ -23,6 +23,11 @@ namespace ServerClientClassLibrary
     public class RowJson
     {
         public List<string> Row { get; set; }
+
+        public RowJson()
+        {
+            Row = new List<string>();
+        }
     }
 
 }

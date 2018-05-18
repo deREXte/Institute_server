@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Sockets;
 using ServerClientClassLibrary;
 using ServerClientClassLibrary.JSONTypes;
+using System.Xml;
 using Newtonsoft.Json;
 
 
@@ -19,36 +20,22 @@ namespace ClientWF
     public partial class MainForm : Form
     {
         SQLExecuter SQLExecuter;
+        CurrentTable CurrentTable;
+        BindingSource Binding = new BindingSource();
 
-        public MainForm(IODialog iodialog)
+        public MainForm()
         {
+            
+            ConnectForm connectForm = new ConnectForm();
+            if (connectForm.ShowDialog() != DialogResult.OK)
+            {
+                connectForm.Dispose();
+                Close();    
+            }
             InitializeComponent();
-            SQLExecuter = new SQLExecuter(iodialog, PrintOnError);
-            ContextMenuStrip cms = new ContextMenuStrip();
-            cms.Items.Add("Добавить строку", null, AddRow_Click);
-            cms.Items.Add("Обновить строку по условию", null, AddRowWithCondition_Click);
-            cms.Items.Add("Обновить строки", null, UpdateRow_Click);
-            DataGridView_MainView.ContextMenuStrip = cms;
+            SQLExecuter = connectForm.Executer;
+            DataGridView_MainView.DataSource = Binding;
         }
-
-        #region DataGridContexMenu
-
-        private void AddRow_Click(object o, EventArgs e)
-        {
-
-        } 
-
-        private void AddRowWithCondition_Click(object o, EventArgs e)
-        {
-
-        } 
-
-        private void UpdateRow_Click(object o, EventArgs e)
-        {
-
-        } 
-
-        #endregion
 
         public void PrintOnError(string msg)
         {
@@ -61,12 +48,23 @@ namespace ClientWF
             gnr.ShowDialog(this);
         }
 
+        public void PrintDataGridViewDataTable(DataTableJson data)
+        {
+            DataTable dataTable = new DataTable();
+            StringBuilder xmlString = new StringBuilder();
+            var reader = XmlReader.Create(data.DataTable);
+            dataTable.ReadXml(reader);
+            Binding.DataSource = dataTable;
+            DataGridView_MainView.AutoResizeColumns(
+                DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
+        }
+
         public void PrintDataGridView(SelectJson js)
         {
             DataGridView_MainView.Rows.Clear();
             DataGridView_MainView.Columns.Clear();
-            foreach (var t in js.ColumnName)
-                DataGridView_MainView.Columns.Add(t, t);
+            foreach (var t in js.TableSchema.Columns)
+                DataGridView_MainView.Columns.Add(t.Name, t.Name);
             int i = 0;
             foreach (var r in js.Rows)
                 DataGridView_MainView.Rows.Insert(i++, r.Row.ToArray());
@@ -74,6 +72,7 @@ namespace ClientWF
 
         public void PrintListTables(SelectJson js)
         {
+            CurrentTable.Dependences = js.Dependence;
             ListBox_Tables.Items.Clear();
                 foreach (var t in js.Rows)
                     ListBox_Tables.Items.Add(t.Row[0]);
@@ -99,12 +98,14 @@ namespace ClientWF
         private void ListBox_Tables_DoubleClick(object sender, EventArgs e)
         {
             var table = ListBox_Tables.Items[ListBox_Tables.SelectedIndex].ToString();
-            SQLExecuter.ApplyCommand<SelectJson>(
+            SQLExecuter.ApplyCommand<DataTableJson>(
                 new QueryJson(Code.OperationCode.SELECT, "SELECT * FROM " + table)
                 {
                     TableName = table
                 },
-                PrintDataGridView);
+                PrintDataGridViewDataTable);
+            CurrentTable.Name = table;
+            textBox_CurrentTable.Text = table;
         }
 
         private void GenUserDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -120,7 +121,27 @@ namespace ClientWF
 
         private void DataGridView_MainView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            // SQLExecuter.ApplyCommand();
+            var row = ((DataGridView)sender).Rows[e.RowIndex];
+            var cols = ((DataGridView)sender).Columns;
+            QueryJson msg = new QueryJson()
+            {
+                Code = Code.OperationCode.UPDATE,
+                TableName = CurrentTable.Name,  
+                Message =
+                    $"UPDATE {CurrentTable} " +
+                    $"SET {cols[e.ColumnIndex].Name}={row.Cells[e.ColumnIndex].Value} " +
+                    $"WHERE {cols[0].Name}={row.Cells[0].Value}"
+            };
+            SQLExecuter.ApplyCommand<QueryJson>(msg, null);
+        }
+
+        private void button_CreateNewRow_Click(object sender, EventArgs e)
+        {
+            new AddtionalForms.CreateNewRow(SQLExecuter, 
+                                            CurrentTable.Name, 
+                                            DataGridView_MainView, 
+                                            CurrentTable.Dependences)
+                                            .ShowDialog();
         }
     }
 }

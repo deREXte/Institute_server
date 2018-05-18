@@ -8,8 +8,9 @@ namespace ServerClientClassLibrary.JSONTypes
 {
     public class QueryJson : Msg
     {
-        public QueryJson(Code.OperationCode code, string msg) : base(code, msg)
-        { }
+        public QueryJson() { }
+
+        public QueryJson(Code.OperationCode code, string msg) : base(code, msg) { }
 
         public string TableName;
     }
