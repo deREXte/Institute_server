@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using ServerClientClassLibrary.JSONTypes;
 using ServerClientClassLibrary;
 using ClientWF;
+using ClientWF.SqlCreater;
 
 namespace ClientWF.AddtionalForms
 {
@@ -17,70 +18,57 @@ namespace ClientWF.AddtionalForms
     {
 
         SQLExecuter Executer;
-        string TableName;
+        CurrentTable CurrentTable;
 
         public CreateNewRow()
         {
             InitializeComponent();
         }
 
-        public CreateNewRow(SQLExecuter executer, string tableName, DataGridView dataGridView, Dependences dependences)
+        public CreateNewRow(SQLExecuter executer, DataGridView dataGridView, CurrentTable currentTable)
         {
             InitializeComponent();
             Executer = executer;
-            TableName = tableName;
+            CurrentTable = currentTable;
             DialogResult = DialogResult.Cancel;
+            dataGridView_AddRow.AllowUserToAddRows = false;
+            dataGridView_AddRow.AllowUserToDeleteRows = false;
             string columnName;
             for(int i = 0; i < dataGridView.ColumnCount; i++)
             {
                 columnName = dataGridView.Columns[i].Name;
-                if (dependences.Dependence.ContainsKey(columnName))
-                {
+                if (currentTable.Dependences.Dependence.ContainsKey(columnName))
                     dataGridView_AddRow.Columns.Add(
                         new DataGridViewComboBoxColumn()
                         {
-                            DataSource = dependences.Dependence[columnName]
+                            DataSource = currentTable.Dependences.Dependence[columnName]
                         });
-                }
                 else
-                {
-                    dataGridView_AddRow.Columns.Add(dataGridView.Columns[i]);
-                }
+                    dataGridView_AddRow.Columns.Add(dataGridView.Columns[i].Name, dataGridView.Columns[i].Name);
             }
+            dataGridView_AddRow.Rows.Add();
         }
 
         private void button_AddRow_Click(object sender, EventArgs e)
         {
             string command = CreateCommand();
-            QueryJson query = new QueryJson(Code.OperationCode.INSERT, command);
-            Executer.ApplyCommand<QueryJson>(query, 
-                (answr) => MessageBox.Show(answr.Message));
+            QueryJson query = new QueryJson(OperationCode.INSERT, command, CurrentTable.Name);
+            var msg = Executer.ApplyCommand<QueryJson>(query);
+            MessageBox.Show(msg.Message);
         }
 
         private string CreateCommand()
         {
-            string result = $"INSERT INTO {TableName} (";
-            string values = "VALUES (";
             var row = dataGridView_AddRow.Rows[0];
-            bool first = true;
+            List<SqlFieldValuePair> pairs = new List<SqlFieldValuePair>();
             foreach(DataGridViewColumn column in dataGridView_AddRow.Columns)
             {
                 int index = column.Index;
-                if(row.Cells[index].Value.ToString() != "")
-                {
-                    if (first)
-                        first = false;
-                    else
-                    {
-                        result += " , ";
-                        values += " , ";
-                    }
-                        
-                    result += column.Name;
-                    values += row.Cells[index].Value;
-                }
+                if(row.Cells[index].Value != null)
+                    pairs.Add(new SqlFieldValuePair(
+                        new KeyValuePair<string, object>(column.Name, row.Cells[index]), SqlCompareOperator.Equal));
             }
-            return result + ")" + values + ")";
+            return SqlCommandCreater.CreateInsertCommand(CurrentTable.Name, pairs);
         }
 
         private void button_Exit_Click(object sender, EventArgs e)

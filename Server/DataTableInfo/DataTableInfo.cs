@@ -7,7 +7,7 @@ using ServerClientClassLibrary.JSONTypes;
 
 namespace Server.DataTableInfo
 {
-    static class DataTableDependeces
+    public static class DataTableDependeces
     {
         private static Dictionary<string, Dependences> TableDependences;
 
@@ -18,7 +18,9 @@ namespace Server.DataTableInfo
 
         public static Dependences GetTableDependence(string tableName)
         {
-            return TableDependences[tableName];
+            if(TableDependences.ContainsKey(tableName))
+                return TableDependences[tableName];
+            return null;
         }
     }
 }

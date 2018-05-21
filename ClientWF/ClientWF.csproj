@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CellValue.cs" />
+    <Compile Include="ChangedRows.cs" />
+    <Compile Include="ChangedRow.cs" />
     <Compile Include="Forms\MainForm\AdditionalForms\CreateNewRow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -131,8 +134,6 @@
       <Name>ServerClientClassLibrary</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Forms\ConnectForm\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

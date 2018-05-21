@@ -37,17 +37,19 @@
             // dataGridView_AddRow
             // 
             this.dataGridView_AddRow.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView_AddRow.Location = new System.Drawing.Point(21, 12);
+            this.dataGridView_AddRow.Location = new System.Drawing.Point(16, 10);
+            this.dataGridView_AddRow.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.dataGridView_AddRow.Name = "dataGridView_AddRow";
             this.dataGridView_AddRow.RowTemplate.Height = 24;
-            this.dataGridView_AddRow.Size = new System.Drawing.Size(475, 129);
+            this.dataGridView_AddRow.Size = new System.Drawing.Size(356, 105);
             this.dataGridView_AddRow.TabIndex = 0;
             // 
             // button_AddRow
             // 
-            this.button_AddRow.Location = new System.Drawing.Point(263, 171);
+            this.button_AddRow.Location = new System.Drawing.Point(197, 139);
+            this.button_AddRow.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.button_AddRow.Name = "button_AddRow";
-            this.button_AddRow.Size = new System.Drawing.Size(138, 23);
+            this.button_AddRow.Size = new System.Drawing.Size(104, 19);
             this.button_AddRow.TabIndex = 1;
             this.button_AddRow.Text = "Добавить строку";
             this.button_AddRow.UseVisualStyleBackColor = true;
@@ -55,9 +57,10 @@
             // 
             // button_Exit
             // 
-            this.button_Exit.Location = new System.Drawing.Point(421, 171);
+            this.button_Exit.Location = new System.Drawing.Point(316, 139);
+            this.button_Exit.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.button_Exit.Name = "button_Exit";
-            this.button_Exit.Size = new System.Drawing.Size(75, 23);
+            this.button_Exit.Size = new System.Drawing.Size(56, 19);
             this.button_Exit.TabIndex = 2;
             this.button_Exit.Text = "Закрыть";
             this.button_Exit.UseVisualStyleBackColor = true;
@@ -65,12 +68,13 @@
             // 
             // CreateNewRow
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(536, 238);
+            this.ClientSize = new System.Drawing.Size(402, 193);
             this.Controls.Add(this.button_Exit);
             this.Controls.Add(this.button_AddRow);
             this.Controls.Add(this.dataGridView_AddRow);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "CreateNewRow";
             this.Text = "CreateNewRow";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView_AddRow)).EndInit();

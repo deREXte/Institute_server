@@ -13,7 +13,7 @@ using ServerClientClassLibrary;
 using ServerClientClassLibrary.JSONTypes;
 using System.Xml;
 using Newtonsoft.Json;
-
+using System.IO;
 
 namespace ClientWF
 {
@@ -30,10 +30,10 @@ namespace ClientWF
             if (connectForm.ShowDialog() != DialogResult.OK)
             {
                 connectForm.Dispose();
-                Close();    
             }
             InitializeComponent();
             SQLExecuter = connectForm.Executer;
+            CurrentTable = new CurrentTable();
             DataGridView_MainView.DataSource = Binding;
         }
 
@@ -50,32 +50,24 @@ namespace ClientWF
 
         public void PrintDataGridViewDataTable(DataTableJson data)
         {
-            DataTable dataTable = new DataTable();
-            StringBuilder xmlString = new StringBuilder();
-            var reader = XmlReader.Create(data.DataTable);
-            dataTable.ReadXml(reader);
-            Binding.DataSource = dataTable;
+            CurrentTable.Dependences = data.Dependence;
+            DataSet dataSet = new DataSet();
+            StringReader xmlreader = new StringReader(data.DataTable);
+            dataSet.ReadXml(xmlreader);
+            CurrentTable.CurTable = dataSet.Tables[CurrentTable.Name];
+            Binding.DataSource = CurrentTable.CurTable;
             DataGridView_MainView.AutoResizeColumns(
-                DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
+                DataGridViewAutoSizeColumnsMode.AllCells);
+            foreach (DataGridViewColumn c in DataGridView_MainView.Columns)
+                c.SortMode = DataGridViewColumnSortMode.NotSortable;
         }
 
-        public void PrintDataGridView(SelectJson js)
+        public void PrintListTables(string tableName, DataTableJson dt)
         {
-            DataGridView_MainView.Rows.Clear();
-            DataGridView_MainView.Columns.Clear();
-            foreach (var t in js.TableSchema.Columns)
-                DataGridView_MainView.Columns.Add(t.Name, t.Name);
-            int i = 0;
-            foreach (var r in js.Rows)
-                DataGridView_MainView.Rows.Insert(i++, r.Row.ToArray());
-        }
-
-        public void PrintListTables(SelectJson js)
-        {
-            CurrentTable.Dependences = js.Dependence;
             ListBox_Tables.Items.Clear();
-                foreach (var t in js.Rows)
-                    ListBox_Tables.Items.Add(t.Row[0]);
+            DataTable dataTable = DataTableJson.Deserialize(tableName, dt);
+            foreach (DataRow row in dataTable.Rows)
+                ListBox_Tables.Items.Add(row[0].ToString());
         }
 
         private void ButtonGetTableList_Click(object sender, EventArgs e)
@@ -85,27 +77,32 @@ namespace ClientWF
 
         private void GetTableList()
         {
-            SQLExecuter.ApplyCommand<SelectJson>(
-                new QueryJson(Code.OperationCode.SELECT, "SELECT name FROM dbo.sysobjects where xtype = 'U' order by name"),
-                PrintListTables);
+            string tableName = "sysobjects";
+            var dataTable = SQLExecuter.ApplyCommand<DataTableJson>(
+                new QueryJson(OperationCode.SELECT, 
+                "SELECT name FROM dbo.sysobjects where xtype='U' order by name")
+                {
+                    TableName = tableName,
+                });
+            PrintListTables(tableName, dataTable);
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            SQLExecuter.ApplyCommand(new QueryJson(Code.OperationCode.ConnectionRefuse, ""));
+            SQLExecuter.ApplyCommand(new QueryJson(OperationCode.ConnectionRefuse, ""));
         }
 
         private void ListBox_Tables_DoubleClick(object sender, EventArgs e)
         {
             var table = ListBox_Tables.Items[ListBox_Tables.SelectedIndex].ToString();
-            SQLExecuter.ApplyCommand<DataTableJson>(
-                new QueryJson(Code.OperationCode.SELECT, "SELECT * FROM " + table)
-                {
-                    TableName = table
-                },
-                PrintDataGridViewDataTable);
             CurrentTable.Name = table;
             textBox_CurrentTable.Text = table;
+            var dataTable = SQLExecuter.ApplyCommand<DataTableJson>(
+                new QueryJson(OperationCode.SELECT, "SELECT * FROM " + table)
+                {
+                    TableName = table
+                });
+            PrintDataGridViewDataTable(dataTable);
         }
 
         private void GenUserDataToolStripMenuItem_Click(object sender, EventArgs e)
@@ -113,35 +110,72 @@ namespace ClientWF
             GenerateUsers gu = new GenerateUsers();
             if(gu.ShowDialog(this) == DialogResult.OK)
             {
-                SQLExecuter.ApplyCommand<GenUserDataJson>(
-                    new QueryJson(Code.OperationCode.GenerateUserData, gu.textBox_Input.Text),
-                        PrintUserData);
+                var userData = SQLExecuter.ApplyCommand<GenUserDataJson>(
+                    new QueryJson(OperationCode.GenerateUserData, "Count=" + gu.textBox_Input.Text));
+                PrintUserData(userData);
             }
-        }
-
-        private void DataGridView_MainView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            var row = ((DataGridView)sender).Rows[e.RowIndex];
-            var cols = ((DataGridView)sender).Columns;
-            QueryJson msg = new QueryJson()
-            {
-                Code = Code.OperationCode.UPDATE,
-                TableName = CurrentTable.Name,  
-                Message =
-                    $"UPDATE {CurrentTable} " +
-                    $"SET {cols[e.ColumnIndex].Name}={row.Cells[e.ColumnIndex].Value} " +
-                    $"WHERE {cols[0].Name}={row.Cells[0].Value}"
-            };
-            SQLExecuter.ApplyCommand<QueryJson>(msg, null);
         }
 
         private void button_CreateNewRow_Click(object sender, EventArgs e)
         {
             new AddtionalForms.CreateNewRow(SQLExecuter, 
-                                            CurrentTable.Name, 
                                             DataGridView_MainView, 
-                                            CurrentTable.Dependences)
+                                            CurrentTable)
                                             .ShowDialog();
         }
+
+        private void DataGridView_MainView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            DataTable currentTable = CurrentTable.CurTable;
+            if (CurrentTable.CompareValues(currentTable.Rows[e.RowIndex][e.ColumnIndex]))
+            {
+                DataGridView_MainView.Rows[e.RowIndex]
+                    .Cells[e.ColumnIndex].Style.BackColor = Color.White;
+                return;
+            }
+            DataGridView_MainView.Rows[e.RowIndex]
+                .Cells[e.ColumnIndex].Style.BackColor = Color.LightGray;
+            CurrentTable.UpdateCell(e.RowIndex, 
+                currentTable.Columns[e.ColumnIndex].ColumnName, 
+                currentTable.Columns[e.ColumnIndex].DataType,
+                currentTable.Rows[e.RowIndex][e.ColumnIndex]);
+        }
+
+        private void DataGridView_MainView_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            CurrentTable.SetTempCellValue(CurrentTable.CurTable.Rows[e.RowIndex][e.ColumnIndex]);
+        }
+
+        private void button_ReturnValues_Click(object sender, EventArgs e)
+        {
+            CurrentTable.ReturnAllCellsToValue(DataGridView_MainView);
+        }
+
+        private void button_UpdateRows_Click(object sender, EventArgs e)
+        {
+            foreach (string l in CurrentTable.UpdateRows())
+                Console.WriteLine(l);
+
+        }
+
+        private void DataGridView_MainView_CellContextMenuStripNeeded(object sender, DataGridViewCellContextMenuStripNeededEventArgs e)
+        {
+            e.ContextMenuStrip = new ContextMenuStrip();
+            e.ContextMenuStrip.Items.Add("Вернуть значения для этой строки", null, (obj, args) => 
+            {
+                CurrentTable.ReturnRowValue(
+                    DataGridView_MainView,
+                    e.RowIndex);
+            });
+            e.ContextMenuStrip.Items.Add("Вернуть значение для этой ячейки", null, (obj, args) => 
+            {
+                CurrentTable.ReturnCellValue(
+                    DataGridView_MainView, 
+                    e.RowIndex, 
+                    CurrentTable.CurTable.Columns[e.ColumnIndex].ColumnName);
+            });
+            e.ContextMenuStrip.Show();
+        }
+
     }
 }

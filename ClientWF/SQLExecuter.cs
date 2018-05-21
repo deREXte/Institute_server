@@ -9,7 +9,7 @@ using ServerClientClassLibrary.JSONTypes;
 
 namespace ClientWF
 {
-    class SQLExecuter
+    public class SQLExecuter
     {
 
         public delegate void Print<T>(T js) where T : Msg;
@@ -31,15 +31,15 @@ namespace ClientWF
         /// <param name="c">Код операции.Код операции будет изменен в данной функции</param>
         /// <param name="data">Будут ли данные от сервера</param>
         /// <param name="print">Делегат для вывода информации</param>
-        public void ApplyCommand<T>(QueryJson msg, Print<T> print) where T : Msg
+        public T ApplyCommand<T>(QueryJson msg) where T : Msg
         {
             var rec = SendCommandAndReceive<T>(msg);
-            if(rec.Code == Code.OperationCode.AnswerError)
+            if(rec.Code == OperationCode.AnswerError)
             {
                 PrintErr(msg.Message);
-                return;
+                return default(T);
             }
-            print?.Invoke(rec);
+            return rec;
         }
 
         public void ApplyCommand(Msg msg)

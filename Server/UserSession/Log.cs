@@ -15,7 +15,6 @@ namespace Server
 
         StreamWriter LogFile;
         string FullSavePath;
-        bool FileOpened;
         
         public string UserName
         {
@@ -36,7 +35,6 @@ namespace Server
             if (!File.Exists(FullSavePath)) 
                 File.Create(FullSavePath).Close();
             LogFile = new StreamWriter(FullSavePath, true);
-            FileOpened = true;
         }
 
         public void Write(string text)
@@ -45,7 +43,7 @@ namespace Server
             LogFile.WriteLine("[" + dateTime.GetDateTimeFormats('g')[0] + "] " + text);
         }
 
-        public void CloseLogFile()
+        public void Close()
         {
             LogFile.Close();
         }

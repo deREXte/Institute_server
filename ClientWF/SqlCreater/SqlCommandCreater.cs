@@ -54,9 +54,15 @@ namespace ClientWF
         {
             return $"INSERT INTO {tableName} ({string.Join(",", pairs.Keys())}) VALUES ({string.Join(",", pairs.Values())})";
         }
+
         public static string CreateUpdateCommand(string tableName, IEnumerable<SqlFieldValuePair> pairs)
         {
             return $"UPDATE {tableName} SET {string.Join(",", pairs)}";
+        }
+
+        public static string CreateUpdateCommand(string tableName, IEnumerable<SqlFieldValuePair> pairs, SqlFieldValuePair conditionPair)
+        {
+            return $"UPDATE {tableName} SET {string.Join(",", pairs)} WHERE {conditionPair}";
         }
 
         public static string CreateUpdateCommand(string tableName, IEnumerable<SqlFieldValuePair> set, IEnumerable<SqlFieldValuePair> conditionsPairs, SqlConditions conditions)

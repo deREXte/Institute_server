@@ -11,13 +11,13 @@ namespace ServerClientClassLibrary
 
         public Msg() { }
 
-        public Msg(Code.OperationCode code, string msg)
+        public Msg(OperationCode code, string msg)
         {
             Code = code;
             Message = msg;
         }
 
-        public Code.OperationCode Code { get; set; }
+        public OperationCode Code { get; set; }
         public string Message { get; set; }
     }
 }

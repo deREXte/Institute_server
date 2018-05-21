@@ -15,7 +15,7 @@ namespace ServerClientClassLibrary.JSONTypes
             Users = new List<UserData>();
         }
 
-        public GenUserDataJson(Code.OperationCode code, string msg) : base(code, msg)
+        public GenUserDataJson(OperationCode code, string msg) : base(code, msg)
         {
             Users = new List<UserData>();
         }

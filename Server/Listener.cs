@@ -47,7 +47,7 @@ namespace Server
 
         private void CreateNewSession(Object socket)
         {
-            new Session((Socket)socket, ServerLog).CreateSession();
+            new CommandListener((Socket)socket).StartDialog();
         }
     }
 

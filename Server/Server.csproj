@@ -67,14 +67,26 @@
   <ItemGroup>
     <Compile Include="DataBaseOperations.cs" />
     <Compile Include="DataTableInfo\DataTableInfo.cs" />
+    <Compile Include="DataTableInfo\DependencesInitializer.cs" />
     <Compile Include="DataTableInfo\IDependencesInitializer.cs" />
     <Compile Include="Listener.cs" />
+    <Compile Include="NewOperations\OperationSwitcher.cs" />
+    <Compile Include="NewOperations\Operations\AOperations.cs" />
+    <Compile Include="NewOperations\Operations\ConnectionRefuse.cs" />
+    <Compile Include="NewOperations\Operations\DeleteOperation.cs" />
+    <Compile Include="NewOperations\Operations\DeleteUsersOperation.cs" />
+    <Compile Include="NewOperations\Operations\GenerateUsersOperation.cs" />
+    <Compile Include="NewOperations\Operations\InsertOperation.cs" />
+    <Compile Include="NewOperations\Operations\LoginOperation.cs" />
+    <Compile Include="NewOperations\Operations\Rights.cs" />
+    <Compile Include="NewOperations\Operations\SelectOperation.cs" />
+    <Compile Include="NewOperations\Operations\UpdateOperation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
-    <Compile Include="Session\Operations.cs" />
-    <Compile Include="Session\Log.cs" />
-    <Compile Include="Session\Session.cs" />
+    <Compile Include="UserSession\Log.cs" />
+    <Compile Include="CommandListener.cs" />
+    <Compile Include="UserSession\Session.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

@@ -15,7 +15,7 @@ namespace ServerClientClassLibrary.JSONTypes
         {
         }
        
-        public StructJson(Code.OperationCode code, string msg) : base(code, msg)
+        public StructJson(OperationCode code, string msg) : base(code, msg)
         {
         }
     }

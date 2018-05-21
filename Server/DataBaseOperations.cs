@@ -11,6 +11,7 @@ using ServerClientClassLibrary.JSONTypes;
 using System.Data;
 using System.IO;
 using System.Xml;
+using ServerClientClassLibrary;
 
 namespace Server
 {
@@ -42,17 +43,23 @@ namespace Server
             _connected = true;
         }
 
-        public static bool CheckUserLoginData(string userName, string password)
+        public static string CheckUserLoginData(string userName, string password)
         {
             SqlCommand command = new SqlCommand(
-                "SELECT * FROM [Users] WHERE UserName " +
+                "SELECT Privilege FROM [Users] WHERE UserName " +
                 "= @UserName AND Password = @Password"
                 , Connection);
             command.Parameters.AddWithValue("@UserName", userName);
             command.Parameters.AddWithValue("@Password", password);
             using (SqlDataReader sqlReader = command.ExecuteReader())
             {
-                return sqlReader.HasRows;
+                if (sqlReader.HasRows)
+                {
+                    sqlReader.Read();
+                    return sqlReader.GetString(0);
+                }
+                else
+                    return null;
             }
         }
 
@@ -93,65 +100,26 @@ namespace Server
 
         public static object locker = new object();
 
-        public static DataTableJson ExecuteDataTable(string command)
+        public static DataTableJson ExecuteDataTable(QueryJson command)
         {
-            SqlDataAdapter adapter = new SqlDataAdapter(command, Connection);
-            DataTable dataTable = new DataTable();
+            SqlDataAdapter adapter = new SqlDataAdapter(command.Message, Connection);
+            DataTable dataTable = new DataTable(command.TableName);
             adapter.Fill(dataTable);
             StringBuilder xmlString = new StringBuilder();
             var xmlWriter = XmlWriter.Create(xmlString);
             dataTable.WriteXml(xmlWriter);
             DataTableJson dataTableJson = new DataTableJson()
             {
-                Code = ServerClientClassLibrary.Code.OperationCode.AnswerOK,
+                Code = OperationCode.AnswerOK,
                 DataTable = xmlString.ToString(),
             };
             return dataTableJson;
         }
 
-        public static SelectJson ExecuteSqlReader(string text)
-        {
-            SqlCommand command = new SqlCommand(text, Connection);
-            SelectJson selectjson = new SelectJson()
-            {
-                Rows = new List<RowJson>(),
-                TableSchema = new TableSchema(),
-            };
-            lock (locker)
-                using (var sqlReader = command.ExecuteReader())
-                {
-                    var columns = sqlReader.FieldCount;
-                    for (int i = 0; i < columns; i++)
-                    {
-                        selectjson.TableSchema.Columns.Add(new Column()
-                        {
-                            Name = sqlReader.GetName(i),
-                            TypeName = sqlReader.GetDataTypeName(i),
-                        });
-                    }
-                    while (sqlReader.Read())
-                    {
-                        RowJson row = new RowJson();
-                        for (int i = 0; i < columns; i++)
-                        {
-                            row.Row.Add(sqlReader.GetValue(i).ToString());
-                        }
-                        selectjson.Rows.Add(row);
-                    }
-                }
-            return selectjson;
-        } 
-
         public static void ExecuteNonSqlReader(string text)
         {
             SqlCommand command = new SqlCommand(text, Connection);
-            try
-            {
-                command.ExecuteNonQuery();
-            }catch(Exception e)
-            {
-
-            }
+            command.ExecuteNonQuery();
         }
     }
 }

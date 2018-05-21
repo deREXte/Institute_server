@@ -82,21 +82,15 @@ namespace ClientWF
         private int Login()
         {
             string login = "UserName=", password = "Password=";
-            int ok = 0;
-            login += TextBox_Login.Text + ";";
-            password += TextBox_Password.Text + ";";
-            Executer.ApplyCommand<QueryJson>(new QueryJson(Code.OperationCode.Login, password + login),
-                (msg) =>
-                {
-                    if (msg.Code == Code.OperationCode.AdminAuthorized)
-                        ok = 2;
-                    else if (msg.Code == Code.OperationCode.UserAuthorized)
-                        ok = 1;
-                    else
-                        ok = -1;
-                });
-            return ok; 
-        }
+            login += TextBox_Login.Text + "&";
+            password += TextBox_Password.Text;
+            var msg = Executer.ApplyCommand<QueryJson>(new QueryJson(OperationCode.Login, login + password));
+            if (msg.Code == OperationCode.AdminAuthorized)
+                return 2;
+            else if (msg.Code == OperationCode.UserAuthorized)
+                return 1;
+            return -1;
+        } 
 
         /*public bool PassConnectionTest()
         {

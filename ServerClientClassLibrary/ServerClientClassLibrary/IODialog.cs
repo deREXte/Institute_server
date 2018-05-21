@@ -40,12 +40,11 @@ namespace ServerClientClassLibrary
         /// Отпраляет лишь код.
         /// </summary>
         /// <param name="code">Код</param>
-        public void SendMessage(Code.OperationCode code)
+        public void SendMessage(OperationCode code)
         {
             Msg msg = new Msg(code, "");
-            Handler.Send(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(msg)),
-                1,
-                SocketFlags.None);
+            byte[] buf = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(msg));
+            Handler.Send(buf, buf.Length, SocketFlags.None);
         }
 
         /// <summary>
@@ -62,7 +61,6 @@ namespace ServerClientClassLibrary
 
         private void SendMessage(byte[] text)
         {
-            text.CopyTo(text, 1);
             Handler.Send(text, text.Length, SocketFlags.None);
         }
 

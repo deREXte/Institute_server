@@ -7,6 +7,7 @@ using System.Timers;
 using System.Configuration;
 using System.Collections.Specialized;
 using System.Security.Cryptography;
+using Server.DataTableInfo;
 
 
 namespace Server
@@ -15,10 +16,10 @@ namespace Server
     {
         Timer TimerRetryConnectToDB;
         int RetryConnectionTime;
-        SHA256 SHA256a;
 
         public void StartServer()
         {
+            DataTableDependeces.InitializeDependences(new DependencesInitializer());
             DataBaseOperations.InitConnectionToDB();
             if (!DataBaseOperations.Connected)
             {
